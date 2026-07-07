@@ -14,13 +14,514 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      alerts: {
+        Row: {
+          alert_type: string
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string
+          reference_id: string | null
+          severity: string
+          title: string
+        }
+        Insert: {
+          alert_type: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message: string
+          reference_id?: string | null
+          severity: string
+          title: string
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          reference_id?: string | null
+          severity?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      app_settings: {
+        Row: {
+          currency_symbol: string
+          factory_name: string
+          id: number
+          low_stock_raw_threshold: number
+          updated_at: string
+          wastage_alert_threshold: number
+        }
+        Insert: {
+          currency_symbol?: string
+          factory_name?: string
+          id?: number
+          low_stock_raw_threshold?: number
+          updated_at?: string
+          wastage_alert_threshold?: number
+        }
+        Update: {
+          currency_symbol?: string
+          factory_name?: string
+          id?: number
+          low_stock_raw_threshold?: number
+          updated_at?: string
+          wastage_alert_threshold?: number
+        }
+        Relationships: []
+      }
+      part_batches: {
+        Row: {
+          actual_usage_kg: number
+          batch_number: string
+          created_at: string
+          expected_usage_kg: number
+          id: string
+          is_blocked: boolean
+          part_id: string
+          quantity: number
+          raw_material_batch_id: string
+          wastage_kg: number | null
+          wastage_notes: string | null
+          wastage_reason: string
+        }
+        Insert: {
+          actual_usage_kg: number
+          batch_number: string
+          created_at?: string
+          expected_usage_kg: number
+          id?: string
+          is_blocked?: boolean
+          part_id: string
+          quantity: number
+          raw_material_batch_id: string
+          wastage_kg?: number | null
+          wastage_notes?: string | null
+          wastage_reason: string
+        }
+        Update: {
+          actual_usage_kg?: number
+          batch_number?: string
+          created_at?: string
+          expected_usage_kg?: number
+          id?: string
+          is_blocked?: boolean
+          part_id?: string
+          quantity?: number
+          raw_material_batch_id?: string
+          wastage_kg?: number | null
+          wastage_notes?: string | null
+          wastage_reason?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "part_batches_part_id_fkey"
+            columns: ["part_id"]
+            isOneToOne: false
+            referencedRelation: "parts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "part_batches_raw_material_batch_id_fkey"
+            columns: ["raw_material_batch_id"]
+            isOneToOne: false
+            referencedRelation: "raw_materials"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      parts: {
+        Row: {
+          consumption_per_unit_kg: number
+          created_at: string
+          current_stock: number
+          id: string
+          low_stock_threshold: number
+          material_type: string
+          notes: string | null
+          part_name: string
+          updated_at: string
+        }
+        Insert: {
+          consumption_per_unit_kg: number
+          created_at?: string
+          current_stock?: number
+          id?: string
+          low_stock_threshold?: number
+          material_type: string
+          notes?: string | null
+          part_name: string
+          updated_at?: string
+        }
+        Update: {
+          consumption_per_unit_kg?: number
+          created_at?: string
+          current_stock?: number
+          id?: string
+          low_stock_threshold?: number
+          material_type?: string
+          notes?: string | null
+          part_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      product_bom: {
+        Row: {
+          id: string
+          part_id: string
+          product_id: string
+          quantity_required: number
+        }
+        Insert: {
+          id?: string
+          part_id: string
+          product_id: string
+          quantity_required: number
+        }
+        Update: {
+          id?: string
+          part_id?: string
+          product_id?: string
+          quantity_required?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_bom_part_id_fkey"
+            columns: ["part_id"]
+            isOneToOne: false
+            referencedRelation: "parts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_bom_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      production_batch_parts: {
+        Row: {
+          id: string
+          part_batch_id: string
+          production_batch_id: string
+          quantity_used: number
+        }
+        Insert: {
+          id?: string
+          part_batch_id: string
+          production_batch_id: string
+          quantity_used: number
+        }
+        Update: {
+          id?: string
+          part_batch_id?: string
+          production_batch_id?: string
+          quantity_used?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "production_batch_parts_part_batch_id_fkey"
+            columns: ["part_batch_id"]
+            isOneToOne: false
+            referencedRelation: "part_batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "production_batch_parts_production_batch_id_fkey"
+            columns: ["production_batch_id"]
+            isOneToOne: false
+            referencedRelation: "production_batches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      production_batches: {
+        Row: {
+          actual_raw_material_kg: number
+          batch_number: string
+          created_at: string
+          expected_raw_material_kg: number
+          extra_raw_material_batch_id: string | null
+          id: string
+          notes: string | null
+          product_id: string
+          production_date: string
+          quantity_produced: number
+          status: string
+          wastage_kg: number | null
+          wastage_notes: string | null
+          wastage_reason: string | null
+        }
+        Insert: {
+          actual_raw_material_kg: number
+          batch_number: string
+          created_at?: string
+          expected_raw_material_kg: number
+          extra_raw_material_batch_id?: string | null
+          id?: string
+          notes?: string | null
+          product_id: string
+          production_date?: string
+          quantity_produced: number
+          status?: string
+          wastage_kg?: number | null
+          wastage_notes?: string | null
+          wastage_reason?: string | null
+        }
+        Update: {
+          actual_raw_material_kg?: number
+          batch_number?: string
+          created_at?: string
+          expected_raw_material_kg?: number
+          extra_raw_material_batch_id?: string | null
+          id?: string
+          notes?: string | null
+          product_id?: string
+          production_date?: string
+          quantity_produced?: number
+          status?: string
+          wastage_kg?: number | null
+          wastage_notes?: string | null
+          wastage_reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "production_batches_extra_raw_material_batch_id_fkey"
+            columns: ["extra_raw_material_batch_id"]
+            isOneToOne: false
+            referencedRelation: "raw_materials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "production_batches_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      production_plans: {
+        Row: {
+          created_at: string
+          id: string
+          plan_number: string
+          planned_date: string
+          planned_quantity: number
+          product_id: string
+          required_parts: Json
+          required_raw_materials: Json
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          plan_number: string
+          planned_date: string
+          planned_quantity: number
+          product_id: string
+          required_parts: Json
+          required_raw_materials: Json
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          plan_number?: string
+          planned_date?: string
+          planned_quantity?: number
+          product_id?: string
+          required_parts?: Json
+          required_raw_materials?: Json
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "production_plans_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          product_code: string | null
+          product_name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          product_code?: string | null
+          product_name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          product_code?: string | null
+          product_name?: string
+        }
+        Relationships: []
+      }
+      raw_materials: {
+        Row: {
+          batch_number: string
+          created_at: string
+          id: string
+          initial_quantity_kg: number
+          is_blocked: boolean
+          material_type: string
+          notes: string | null
+          purchase_date: string
+          rate_per_kg: number
+          remaining_quantity_kg: number
+          total_cost: number | null
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          batch_number: string
+          created_at?: string
+          id?: string
+          initial_quantity_kg: number
+          is_blocked?: boolean
+          material_type: string
+          notes?: string | null
+          purchase_date?: string
+          rate_per_kg: number
+          remaining_quantity_kg: number
+          total_cost?: number | null
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          batch_number?: string
+          created_at?: string
+          id?: string
+          initial_quantity_kg?: number
+          is_blocked?: boolean
+          material_type?: string
+          notes?: string | null
+          purchase_date?: string
+          rate_per_kg?: number
+          remaining_quantity_kg?: number
+          total_cost?: number | null
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "raw_materials_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vendors: {
+        Row: {
+          address: string
+          created_at: string
+          id: string
+          is_active: boolean
+          materials_supplied: string[]
+          name: string
+          notes: string | null
+          phone: string
+          updated_at: string
+        }
+        Insert: {
+          address: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          materials_supplied?: string[]
+          name: string
+          notes?: string | null
+          phone: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          materials_supplied?: string[]
+          name?: string
+          notes?: string | null
+          phone?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      wastage_logs: {
+        Row: {
+          actual_kg: number
+          created_at: string
+          expected_kg: number
+          id: string
+          level: string
+          level_name: string
+          notes: string | null
+          reason: string
+          reference_id: string
+          wastage_kg: number
+          wastage_percentage: number | null
+        }
+        Insert: {
+          actual_kg: number
+          created_at?: string
+          expected_kg: number
+          id?: string
+          level: string
+          level_name: string
+          notes?: string | null
+          reason: string
+          reference_id: string
+          wastage_kg: number
+          wastage_percentage?: number | null
+        }
+        Update: {
+          actual_kg?: number
+          created_at?: string
+          expected_kg?: number
+          id?: string
+          level?: string
+          level_name?: string
+          notes?: string | null
+          reason?: string
+          reference_id?: string
+          wastage_kg?: number
+          wastage_percentage?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      next_number_for_prefix: {
+        Args: { p_column: string; p_prefix: string; p_table: string }
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never
