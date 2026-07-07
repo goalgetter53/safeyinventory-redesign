@@ -9,38 +9,251 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedVendorsRouteImport } from './routes/_authenticated/vendors'
+import { Route as AuthenticatedTraceabilityRouteImport } from './routes/_authenticated/traceability'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
+import { Route as AuthenticatedRawMaterialsRouteImport } from './routes/_authenticated/raw-materials'
+import { Route as AuthenticatedProductsRouteImport } from './routes/_authenticated/products'
+import { Route as AuthenticatedProductionPlanningRouteImport } from './routes/_authenticated/production-planning'
+import { Route as AuthenticatedProductionRouteImport } from './routes/_authenticated/production'
+import { Route as AuthenticatedPartsRouteImport } from './routes/_authenticated/parts'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedBatchRecallRouteImport } from './routes/_authenticated/batch-recall'
+import { Route as AuthenticatedAlertsRouteImport } from './routes/_authenticated/alerts'
+import { Route as AuthenticatedProductionNewRouteImport } from './routes/_authenticated/production.new'
+import { Route as AuthenticatedProductsIdBomRouteImport } from './routes/_authenticated/products.$id.bom'
 
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedVendorsRoute = AuthenticatedVendorsRouteImport.update({
+  id: '/vendors',
+  path: '/vendors',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedTraceabilityRoute =
+  AuthenticatedTraceabilityRouteImport.update({
+    id: '/traceability',
+    path: '/traceability',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedReportsRoute = AuthenticatedReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedRawMaterialsRoute =
+  AuthenticatedRawMaterialsRouteImport.update({
+    id: '/raw-materials',
+    path: '/raw-materials',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedProductsRoute = AuthenticatedProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedProductionPlanningRoute =
+  AuthenticatedProductionPlanningRouteImport.update({
+    id: '/production-planning',
+    path: '/production-planning',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedProductionRoute = AuthenticatedProductionRouteImport.update({
+  id: '/production',
+  path: '/production',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPartsRoute = AuthenticatedPartsRouteImport.update({
+  id: '/parts',
+  path: '/parts',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedBatchRecallRoute =
+  AuthenticatedBatchRecallRouteImport.update({
+    id: '/batch-recall',
+    path: '/batch-recall',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAlertsRoute = AuthenticatedAlertsRouteImport.update({
+  id: '/alerts',
+  path: '/alerts',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedProductionNewRoute =
+  AuthenticatedProductionNewRouteImport.update({
+    id: '/new',
+    path: '/new',
+    getParentRoute: () => AuthenticatedProductionRoute,
+  } as any)
+const AuthenticatedProductsIdBomRoute =
+  AuthenticatedProductsIdBomRouteImport.update({
+    id: '/$id/bom',
+    path: '/$id/bom',
+    getParentRoute: () => AuthenticatedProductsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/alerts': typeof AuthenticatedAlertsRoute
+  '/batch-recall': typeof AuthenticatedBatchRecallRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/parts': typeof AuthenticatedPartsRoute
+  '/production': typeof AuthenticatedProductionRouteWithChildren
+  '/production-planning': typeof AuthenticatedProductionPlanningRoute
+  '/products': typeof AuthenticatedProductsRouteWithChildren
+  '/raw-materials': typeof AuthenticatedRawMaterialsRoute
+  '/reports': typeof AuthenticatedReportsRoute
+  '/settings': typeof AuthenticatedSettingsRoute
+  '/traceability': typeof AuthenticatedTraceabilityRoute
+  '/vendors': typeof AuthenticatedVendorsRoute
+  '/production/new': typeof AuthenticatedProductionNewRoute
+  '/products/$id/bom': typeof AuthenticatedProductsIdBomRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/alerts': typeof AuthenticatedAlertsRoute
+  '/batch-recall': typeof AuthenticatedBatchRecallRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/parts': typeof AuthenticatedPartsRoute
+  '/production': typeof AuthenticatedProductionRouteWithChildren
+  '/production-planning': typeof AuthenticatedProductionPlanningRoute
+  '/products': typeof AuthenticatedProductsRouteWithChildren
+  '/raw-materials': typeof AuthenticatedRawMaterialsRoute
+  '/reports': typeof AuthenticatedReportsRoute
+  '/settings': typeof AuthenticatedSettingsRoute
+  '/traceability': typeof AuthenticatedTraceabilityRoute
+  '/vendors': typeof AuthenticatedVendorsRoute
+  '/production/new': typeof AuthenticatedProductionNewRoute
+  '/products/$id/bom': typeof AuthenticatedProductsIdBomRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/_authenticated/alerts': typeof AuthenticatedAlertsRoute
+  '/_authenticated/batch-recall': typeof AuthenticatedBatchRecallRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/parts': typeof AuthenticatedPartsRoute
+  '/_authenticated/production': typeof AuthenticatedProductionRouteWithChildren
+  '/_authenticated/production-planning': typeof AuthenticatedProductionPlanningRoute
+  '/_authenticated/products': typeof AuthenticatedProductsRouteWithChildren
+  '/_authenticated/raw-materials': typeof AuthenticatedRawMaterialsRoute
+  '/_authenticated/reports': typeof AuthenticatedReportsRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/traceability': typeof AuthenticatedTraceabilityRoute
+  '/_authenticated/vendors': typeof AuthenticatedVendorsRoute
+  '/_authenticated/production/new': typeof AuthenticatedProductionNewRoute
+  '/_authenticated/products/$id/bom': typeof AuthenticatedProductsIdBomRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/alerts'
+    | '/batch-recall'
+    | '/dashboard'
+    | '/parts'
+    | '/production'
+    | '/production-planning'
+    | '/products'
+    | '/raw-materials'
+    | '/reports'
+    | '/settings'
+    | '/traceability'
+    | '/vendors'
+    | '/production/new'
+    | '/products/$id/bom'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/auth'
+    | '/alerts'
+    | '/batch-recall'
+    | '/dashboard'
+    | '/parts'
+    | '/production'
+    | '/production-planning'
+    | '/products'
+    | '/raw-materials'
+    | '/reports'
+    | '/settings'
+    | '/traceability'
+    | '/vendors'
+    | '/production/new'
+    | '/products/$id/bom'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/_authenticated/alerts'
+    | '/_authenticated/batch-recall'
+    | '/_authenticated/dashboard'
+    | '/_authenticated/parts'
+    | '/_authenticated/production'
+    | '/_authenticated/production-planning'
+    | '/_authenticated/products'
+    | '/_authenticated/raw-materials'
+    | '/_authenticated/reports'
+    | '/_authenticated/settings'
+    | '/_authenticated/traceability'
+    | '/_authenticated/vendors'
+    | '/_authenticated/production/new'
+    | '/_authenticated/products/$id/bom'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +261,171 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/vendors': {
+      id: '/_authenticated/vendors'
+      path: '/vendors'
+      fullPath: '/vendors'
+      preLoaderRoute: typeof AuthenticatedVendorsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/traceability': {
+      id: '/_authenticated/traceability'
+      path: '/traceability'
+      fullPath: '/traceability'
+      preLoaderRoute: typeof AuthenticatedTraceabilityRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/reports': {
+      id: '/_authenticated/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof AuthenticatedReportsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/raw-materials': {
+      id: '/_authenticated/raw-materials'
+      path: '/raw-materials'
+      fullPath: '/raw-materials'
+      preLoaderRoute: typeof AuthenticatedRawMaterialsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/products': {
+      id: '/_authenticated/products'
+      path: '/products'
+      fullPath: '/products'
+      preLoaderRoute: typeof AuthenticatedProductsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/production-planning': {
+      id: '/_authenticated/production-planning'
+      path: '/production-planning'
+      fullPath: '/production-planning'
+      preLoaderRoute: typeof AuthenticatedProductionPlanningRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/production': {
+      id: '/_authenticated/production'
+      path: '/production'
+      fullPath: '/production'
+      preLoaderRoute: typeof AuthenticatedProductionRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/parts': {
+      id: '/_authenticated/parts'
+      path: '/parts'
+      fullPath: '/parts'
+      preLoaderRoute: typeof AuthenticatedPartsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/batch-recall': {
+      id: '/_authenticated/batch-recall'
+      path: '/batch-recall'
+      fullPath: '/batch-recall'
+      preLoaderRoute: typeof AuthenticatedBatchRecallRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/alerts': {
+      id: '/_authenticated/alerts'
+      path: '/alerts'
+      fullPath: '/alerts'
+      preLoaderRoute: typeof AuthenticatedAlertsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/production/new': {
+      id: '/_authenticated/production/new'
+      path: '/new'
+      fullPath: '/production/new'
+      preLoaderRoute: typeof AuthenticatedProductionNewRouteImport
+      parentRoute: typeof AuthenticatedProductionRoute
+    }
+    '/_authenticated/products/$id/bom': {
+      id: '/_authenticated/products/$id/bom'
+      path: '/$id/bom'
+      fullPath: '/products/$id/bom'
+      preLoaderRoute: typeof AuthenticatedProductsIdBomRouteImport
+      parentRoute: typeof AuthenticatedProductsRoute
+    }
   }
 }
 
+interface AuthenticatedProductionRouteChildren {
+  AuthenticatedProductionNewRoute: typeof AuthenticatedProductionNewRoute
+}
+
+const AuthenticatedProductionRouteChildren: AuthenticatedProductionRouteChildren =
+  {
+    AuthenticatedProductionNewRoute: AuthenticatedProductionNewRoute,
+  }
+
+const AuthenticatedProductionRouteWithChildren =
+  AuthenticatedProductionRoute._addFileChildren(
+    AuthenticatedProductionRouteChildren,
+  )
+
+interface AuthenticatedProductsRouteChildren {
+  AuthenticatedProductsIdBomRoute: typeof AuthenticatedProductsIdBomRoute
+}
+
+const AuthenticatedProductsRouteChildren: AuthenticatedProductsRouteChildren = {
+  AuthenticatedProductsIdBomRoute: AuthenticatedProductsIdBomRoute,
+}
+
+const AuthenticatedProductsRouteWithChildren =
+  AuthenticatedProductsRoute._addFileChildren(
+    AuthenticatedProductsRouteChildren,
+  )
+
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAlertsRoute: typeof AuthenticatedAlertsRoute
+  AuthenticatedBatchRecallRoute: typeof AuthenticatedBatchRecallRoute
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedPartsRoute: typeof AuthenticatedPartsRoute
+  AuthenticatedProductionRoute: typeof AuthenticatedProductionRouteWithChildren
+  AuthenticatedProductionPlanningRoute: typeof AuthenticatedProductionPlanningRoute
+  AuthenticatedProductsRoute: typeof AuthenticatedProductsRouteWithChildren
+  AuthenticatedRawMaterialsRoute: typeof AuthenticatedRawMaterialsRoute
+  AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedTraceabilityRoute: typeof AuthenticatedTraceabilityRoute
+  AuthenticatedVendorsRoute: typeof AuthenticatedVendorsRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAlertsRoute: AuthenticatedAlertsRoute,
+  AuthenticatedBatchRecallRoute: AuthenticatedBatchRecallRoute,
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedPartsRoute: AuthenticatedPartsRoute,
+  AuthenticatedProductionRoute: AuthenticatedProductionRouteWithChildren,
+  AuthenticatedProductionPlanningRoute: AuthenticatedProductionPlanningRoute,
+  AuthenticatedProductsRoute: AuthenticatedProductsRouteWithChildren,
+  AuthenticatedRawMaterialsRoute: AuthenticatedRawMaterialsRoute,
+  AuthenticatedReportsRoute: AuthenticatedReportsRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedTraceabilityRoute: AuthenticatedTraceabilityRoute,
+  AuthenticatedVendorsRoute: AuthenticatedVendorsRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
