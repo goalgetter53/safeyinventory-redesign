@@ -145,7 +145,6 @@ function MonthlyReport() {
     return Array.from(map.values()).sort((a, b) => a.date.localeCompare(b.date));
   }, [data]);
   const products = Array.from(new Set((data ?? []).map((r: any) => r.products?.product_name ?? "Unknown")));
-  const colors = ["var(--color-chart-1)", "var(--color-chart-2)", "var(--color-chart-3)", "var(--color-chart-4)", "var(--color-chart-5)"];
 
   return (
     <div className="space-y-4">
@@ -160,9 +159,9 @@ function MonthlyReport() {
         <Kpi label="Avg wastage %" value={`${(totalActual > 0 ? (totalWaste / totalActual) * 100 : 0).toFixed(2)}%`} />
       </div>
       <ChartCard title="Units produced by product / day">
-        <ResponsiveContainer width="100%" height={280}>
-          <BarChart data={chartData}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="date" /><YAxis /><Tooltip /><Legend />{products.map((p, i) => <Bar key={p} dataKey={p} stackId="a" fill={colors[i % colors.length]} />)}</BarChart>
-        </ResponsiveContainer>
+        <Suspense fallback={<ChartFallback height={280} />}>
+          <MonthlyChart data={chartData} products={products} />
+        </Suspense>
       </ChartCard>
       <Card>
         <CardContent className="p-0">
