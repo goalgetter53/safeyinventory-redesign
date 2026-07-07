@@ -518,6 +518,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_dashboard_kpis: { Args: never; Returns: Json }
+      get_traceability_backward: {
+        Args: { p_production_batch_id: string }
+        Returns: Json
+      }
+      get_traceability_forward: {
+        Args: { p_raw_material_id: string }
+        Returns: Json
+      }
       next_number_for_prefix: {
         Args: { p_column: string; p_prefix: string; p_table: string }
         Returns: number
