@@ -1,8 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useState, useMemo } from "react";
+import { useState, useMemo, lazy, Suspense } from "react";
 import { Download, BarChart3 } from "lucide-react";
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from "recharts";
 
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader } from "@/components/inventory/page-header";
@@ -10,10 +9,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { TableSkeleton } from "@/components/inventory/skeletons";
 import { fmtDate, fmtKg, fmtNum, fmtCurrency, wastageReasonLabel } from "@/lib/inventory/format";
 import { downloadCsv } from "@/lib/inventory/csv";
+
+// Recharts is ~90KB gzipped — load it only when Reports is opened.
+const WastageCharts = lazy(() => import("@/components/reports/wastage-charts"));
+const MonthlyChart = lazy(() => import("@/components/reports/monthly-chart"));
+
+const ChartFallback = ({ height = 260 }: { height?: number }) => <Skeleton className="w-full" style={{ height }} />;
 
 export const Route = createFileRoute("/_authenticated/reports")({
   component: ReportsPage,
@@ -75,18 +82,16 @@ function WastageReport() {
         <Kpi label="Avg wastage %" value={`${avgPct.toFixed(2)}%`} />
         <Kpi label="Log entries" value={fmtNum(data?.length ?? 0)} />
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <ChartCard title="Wastage by reason (kg)">
-          <ResponsiveContainer width="100%" height={260}>
-            <BarChart data={byReason}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="reason" /><YAxis /><Tooltip /><Bar dataKey="kg" fill="var(--color-chart-1)" /></BarChart>
-          </ResponsiveContainer>
-        </ChartCard>
-        <ChartCard title="Wastage trend (kg over time)">
-          <ResponsiveContainer width="100%" height={260}>
-            <LineChart data={byDate}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="date" /><YAxis /><Tooltip /><Line type="monotone" dataKey="kg" stroke="var(--color-chart-4)" /></LineChart>
-          </ResponsiveContainer>
-        </ChartCard>
-      </div>
+      <Card>
+        <CardHeader><CardTitle className="text-base flex items-center gap-2"><BarChart3 className="h-4 w-4" /> Wastage charts</CardTitle></CardHeader>
+        <CardContent>
+          <Suspense fallback={<div className="grid grid-cols-1 lg:grid-cols-2 gap-4"><ChartFallback /><ChartFallback /></div>}>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <WastageCharts byReason={byReason} byDate={byDate} />
+            </div>
+          </Suspense>
+        </CardContent>
+      </Card>
       <Card>
         <CardContent className="p-0">
           <Table>
@@ -140,7 +145,6 @@ function MonthlyReport() {
     return Array.from(map.values()).sort((a, b) => a.date.localeCompare(b.date));
   }, [data]);
   const products = Array.from(new Set((data ?? []).map((r: any) => r.products?.product_name ?? "Unknown")));
-  const colors = ["var(--color-chart-1)", "var(--color-chart-2)", "var(--color-chart-3)", "var(--color-chart-4)", "var(--color-chart-5)"];
 
   return (
     <div className="space-y-4">
@@ -155,9 +159,9 @@ function MonthlyReport() {
         <Kpi label="Avg wastage %" value={`${(totalActual > 0 ? (totalWaste / totalActual) * 100 : 0).toFixed(2)}%`} />
       </div>
       <ChartCard title="Units produced by product / day">
-        <ResponsiveContainer width="100%" height={280}>
-          <BarChart data={chartData}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="date" /><YAxis /><Tooltip /><Legend />{products.map((p, i) => <Bar key={p} dataKey={p} stackId="a" fill={colors[i % colors.length]} />)}</BarChart>
-        </ResponsiveContainer>
+        <Suspense fallback={<ChartFallback height={280} />}>
+          <MonthlyChart data={chartData} products={products} />
+        </Suspense>
       </ChartCard>
       <Card>
         <CardContent className="p-0">

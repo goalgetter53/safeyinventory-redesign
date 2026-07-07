@@ -53,7 +53,7 @@
    Accent #F59E0B (amber), Success #10B981, Danger #EF4444,
    Background #F8FAFC, Card #FFFFFF, Text #0F172A, Muted #64748B, Border #E2E8F0 */
 :root {
-  --radius: 0.5rem;
+  --radius: 0.625rem;
   --background: oklch(0.985 0.005 250);         /* #F8FAFC */
   --foreground: oklch(0.21 0.04 265);           /* #0F172A */
   --card: oklch(1 0 0);
@@ -90,6 +90,15 @@
   --sidebar-accent-foreground: oklch(0.99 0.003 250);
   --sidebar-border: oklch(0.3 0.04 265);
   --sidebar-ring: oklch(0.55 0.19 260);
+
+  /* Stripe-flavored elevation tokens — softer, more depth than default shadow-md. */
+  --shadow-xs: 0 1px 2px 0 color-mix(in oklab, var(--foreground) 5%, transparent);
+  --shadow-sm: 0 1px 3px 0 color-mix(in oklab, var(--foreground) 6%, transparent),
+               0 1px 2px -1px color-mix(in oklab, var(--foreground) 4%, transparent);
+  --shadow-md: 0 4px 12px -2px color-mix(in oklab, var(--foreground) 8%, transparent),
+               0 2px 4px -2px color-mix(in oklab, var(--foreground) 4%, transparent);
+  --shadow-lg: 0 12px 32px -8px color-mix(in oklab, var(--foreground) 14%, transparent),
+               0 4px 8px -4px color-mix(in oklab, var(--foreground) 6%, transparent);
 }
 
 .dark {
@@ -131,10 +140,24 @@
   html, body { font-family: var(--font-sans); }
   body {
     background-color: var(--color-background);
+    background-image:
+      radial-gradient(1200px 600px at 100% -10%, color-mix(in oklab, var(--primary) 6%, transparent), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, color-mix(in oklab, var(--chart-2) 5%, transparent), transparent 60%);
+    background-attachment: fixed;
     color: var(--color-foreground);
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
-  h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.01em; }
-  h2 { font-size: 18px; font-weight: 600; }
-  .label-caps { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-muted-foreground); font-weight: 500; }
+  h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; }
+  h2 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
+  .label-caps { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-muted-foreground); font-weight: 600; }
+}
+
+/* Smoother card feel — replaces default flat borders with a soft elevation. */
+@layer components {
+  [data-slot="card"] {
+    box-shadow: var(--shadow-sm);
+    border-color: color-mix(in oklab, var(--border) 70%, transparent);
+    transition: box-shadow 180ms ease, transform 180ms ease;
+  }
 }
