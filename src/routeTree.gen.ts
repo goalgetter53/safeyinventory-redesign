@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedVendorsRouteImport } from './routes/_authenticated/vendors'
 import { Route as AuthenticatedRawMaterialsRouteImport } from './routes/_authenticated/raw-materials'
+import { Route as AuthenticatedPartsRouteImport } from './routes/_authenticated/parts'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 
 const AuthRoute = AuthRouteImport.update({
@@ -41,6 +42,11 @@ const AuthenticatedRawMaterialsRoute =
     path: '/raw-materials',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedPartsRoute = AuthenticatedPartsRouteImport.update({
+  id: '/parts',
+  path: '/parts',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -51,6 +57,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/parts': typeof AuthenticatedPartsRoute
   '/raw-materials': typeof AuthenticatedRawMaterialsRoute
   '/vendors': typeof AuthenticatedVendorsRoute
 }
@@ -58,6 +65,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/parts': typeof AuthenticatedPartsRoute
   '/raw-materials': typeof AuthenticatedRawMaterialsRoute
   '/vendors': typeof AuthenticatedVendorsRoute
 }
@@ -67,20 +75,28 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/parts': typeof AuthenticatedPartsRoute
   '/_authenticated/raw-materials': typeof AuthenticatedRawMaterialsRoute
   '/_authenticated/vendors': typeof AuthenticatedVendorsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/dashboard' | '/raw-materials' | '/vendors'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/dashboard'
+    | '/parts'
+    | '/raw-materials'
+    | '/vendors'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/dashboard' | '/raw-materials' | '/vendors'
+  to: '/' | '/auth' | '/dashboard' | '/parts' | '/raw-materials' | '/vendors'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/dashboard'
+    | '/_authenticated/parts'
     | '/_authenticated/raw-materials'
     | '/_authenticated/vendors'
   fileRoutesById: FileRoutesById
@@ -128,6 +144,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRawMaterialsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/parts': {
+      id: '/_authenticated/parts'
+      path: '/parts'
+      fullPath: '/parts'
+      preLoaderRoute: typeof AuthenticatedPartsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -140,12 +163,14 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedPartsRoute: typeof AuthenticatedPartsRoute
   AuthenticatedRawMaterialsRoute: typeof AuthenticatedRawMaterialsRoute
   AuthenticatedVendorsRoute: typeof AuthenticatedVendorsRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedPartsRoute: AuthenticatedPartsRoute,
   AuthenticatedRawMaterialsRoute: AuthenticatedRawMaterialsRoute,
   AuthenticatedVendorsRoute: AuthenticatedVendorsRoute,
 }
