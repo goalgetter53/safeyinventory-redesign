@@ -99,7 +99,7 @@ function TraceView({ result }: { result: Result }) {
 }
 
 function TraceTree({ data }: { data: any }) {
-  const nodes: JSX.Element[] = [];
+  const nodes: React.ReactNode[] = [];
 
   if (data.prod) {
     nodes.push(

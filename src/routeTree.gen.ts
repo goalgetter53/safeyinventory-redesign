@@ -13,8 +13,10 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedVendorsRouteImport } from './routes/_authenticated/vendors'
+import { Route as AuthenticatedTraceabilityRouteImport } from './routes/_authenticated/traceability'
 import { Route as AuthenticatedRawMaterialsRouteImport } from './routes/_authenticated/raw-materials'
 import { Route as AuthenticatedProductsRouteImport } from './routes/_authenticated/products'
+import { Route as AuthenticatedProductionPlanningRouteImport } from './routes/_authenticated/production-planning'
 import { Route as AuthenticatedProductionRouteImport } from './routes/_authenticated/production'
 import { Route as AuthenticatedPartsRouteImport } from './routes/_authenticated/parts'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -40,6 +42,12 @@ const AuthenticatedVendorsRoute = AuthenticatedVendorsRouteImport.update({
   path: '/vendors',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedTraceabilityRoute =
+  AuthenticatedTraceabilityRouteImport.update({
+    id: '/traceability',
+    path: '/traceability',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedRawMaterialsRoute =
   AuthenticatedRawMaterialsRouteImport.update({
     id: '/raw-materials',
@@ -51,6 +59,12 @@ const AuthenticatedProductsRoute = AuthenticatedProductsRouteImport.update({
   path: '/products',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedProductionPlanningRoute =
+  AuthenticatedProductionPlanningRouteImport.update({
+    id: '/production-planning',
+    path: '/production-planning',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedProductionRoute = AuthenticatedProductionRouteImport.update({
   id: '/production',
   path: '/production',
@@ -85,8 +99,10 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/parts': typeof AuthenticatedPartsRoute
   '/production': typeof AuthenticatedProductionRouteWithChildren
+  '/production-planning': typeof AuthenticatedProductionPlanningRoute
   '/products': typeof AuthenticatedProductsRouteWithChildren
   '/raw-materials': typeof AuthenticatedRawMaterialsRoute
+  '/traceability': typeof AuthenticatedTraceabilityRoute
   '/vendors': typeof AuthenticatedVendorsRoute
   '/production/new': typeof AuthenticatedProductionNewRoute
   '/products/$id/bom': typeof AuthenticatedProductsIdBomRoute
@@ -97,8 +113,10 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/parts': typeof AuthenticatedPartsRoute
   '/production': typeof AuthenticatedProductionRouteWithChildren
+  '/production-planning': typeof AuthenticatedProductionPlanningRoute
   '/products': typeof AuthenticatedProductsRouteWithChildren
   '/raw-materials': typeof AuthenticatedRawMaterialsRoute
+  '/traceability': typeof AuthenticatedTraceabilityRoute
   '/vendors': typeof AuthenticatedVendorsRoute
   '/production/new': typeof AuthenticatedProductionNewRoute
   '/products/$id/bom': typeof AuthenticatedProductsIdBomRoute
@@ -111,8 +129,10 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/parts': typeof AuthenticatedPartsRoute
   '/_authenticated/production': typeof AuthenticatedProductionRouteWithChildren
+  '/_authenticated/production-planning': typeof AuthenticatedProductionPlanningRoute
   '/_authenticated/products': typeof AuthenticatedProductsRouteWithChildren
   '/_authenticated/raw-materials': typeof AuthenticatedRawMaterialsRoute
+  '/_authenticated/traceability': typeof AuthenticatedTraceabilityRoute
   '/_authenticated/vendors': typeof AuthenticatedVendorsRoute
   '/_authenticated/production/new': typeof AuthenticatedProductionNewRoute
   '/_authenticated/products/$id/bom': typeof AuthenticatedProductsIdBomRoute
@@ -125,8 +145,10 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/parts'
     | '/production'
+    | '/production-planning'
     | '/products'
     | '/raw-materials'
+    | '/traceability'
     | '/vendors'
     | '/production/new'
     | '/products/$id/bom'
@@ -137,8 +159,10 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/parts'
     | '/production'
+    | '/production-planning'
     | '/products'
     | '/raw-materials'
+    | '/traceability'
     | '/vendors'
     | '/production/new'
     | '/products/$id/bom'
@@ -150,8 +174,10 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/parts'
     | '/_authenticated/production'
+    | '/_authenticated/production-planning'
     | '/_authenticated/products'
     | '/_authenticated/raw-materials'
+    | '/_authenticated/traceability'
     | '/_authenticated/vendors'
     | '/_authenticated/production/new'
     | '/_authenticated/products/$id/bom'
@@ -193,6 +219,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedVendorsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/traceability': {
+      id: '/_authenticated/traceability'
+      path: '/traceability'
+      fullPath: '/traceability'
+      preLoaderRoute: typeof AuthenticatedTraceabilityRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/raw-materials': {
       id: '/_authenticated/raw-materials'
       path: '/raw-materials'
@@ -205,6 +238,13 @@ declare module '@tanstack/react-router' {
       path: '/products'
       fullPath: '/products'
       preLoaderRoute: typeof AuthenticatedProductsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/production-planning': {
+      id: '/_authenticated/production-planning'
+      path: '/production-planning'
+      fullPath: '/production-planning'
+      preLoaderRoute: typeof AuthenticatedProductionPlanningRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/production': {
@@ -276,8 +316,10 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedPartsRoute: typeof AuthenticatedPartsRoute
   AuthenticatedProductionRoute: typeof AuthenticatedProductionRouteWithChildren
+  AuthenticatedProductionPlanningRoute: typeof AuthenticatedProductionPlanningRoute
   AuthenticatedProductsRoute: typeof AuthenticatedProductsRouteWithChildren
   AuthenticatedRawMaterialsRoute: typeof AuthenticatedRawMaterialsRoute
+  AuthenticatedTraceabilityRoute: typeof AuthenticatedTraceabilityRoute
   AuthenticatedVendorsRoute: typeof AuthenticatedVendorsRoute
 }
 
@@ -285,8 +327,10 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedPartsRoute: AuthenticatedPartsRoute,
   AuthenticatedProductionRoute: AuthenticatedProductionRouteWithChildren,
+  AuthenticatedProductionPlanningRoute: AuthenticatedProductionPlanningRoute,
   AuthenticatedProductsRoute: AuthenticatedProductsRouteWithChildren,
   AuthenticatedRawMaterialsRoute: AuthenticatedRawMaterialsRoute,
+  AuthenticatedTraceabilityRoute: AuthenticatedTraceabilityRoute,
   AuthenticatedVendorsRoute: AuthenticatedVendorsRoute,
 }
 
