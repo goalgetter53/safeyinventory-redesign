@@ -79,3 +79,32 @@ Dashboard · Vendors · Raw Materials · Parts (with expandable batch panel) · 
 
 - **Lovable**: click Publish.
 - **Elsewhere**: any TanStack Start-compatible host (Cloudflare Workers, Node, etc). Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` at build time.
+
+## Performance optimizations (2026-07-07)
+
+### Database
+- Added composite/missing indexes: `raw_materials(material_type, is_blocked)`, `raw_materials(purchase_date desc)`, partial index on `raw_materials(is_blocked) WHERE NOT is_blocked`, `part_batches(created_at desc)`, `production_batches(status)`, `production_batches(created_at desc)`, `wastage_logs(level, reference_id)`, `wastage_logs(created_at desc)`, `production_plans(product_id, planned_date desc)`, `production_plans(created_at desc)`.
+- Three new `SECURITY DEFINER STABLE` RPCs replace multi-round-trip client patterns:
+  - `get_dashboard_kpis()` — 1 call returns 15 KPIs (was 6 parallel table scans + JS aggregation).
+  - `get_traceability_forward(uuid)` and `get_traceability_backward(uuid)` — 1 call each returns full vendor → RM → part → production chain as JSONB.
+
+### React Query
+- Global defaults: `staleTime: 30s`, `gcTime: 5min`, `refetchOnWindowFocus: false`, `retry: 1`.
+- Reference-data queries (vendors, parts, active products): `staleTime: 5min`.
+- Alerts unread badge switched from realtime subscription + 30s poll to a 60s poll (removes an always-open realtime channel that fired on every alert insert anywhere in the app).
+
+### Client
+- Debounced global header search and Traceability search (300 ms) — was firing 3–4 Supabase requests per keystroke.
+- Debounced Vendor list filter.
+- Raw Materials list: explicit column projection instead of `select('*')`.
+- Production wizard and Planning: explicit column projection on Products dropdown.
+
+### Deliberately skipped
+- Trigger rewrite: current triggers do a single UPDATE + a conditional insert; slow-query stats show writes ≤50 ms, so moving alert inserts out of the write path adds risk without payoff.
+- Table virtualization: dataset sizes stay small in practice; a 25/page cap on the reports and history views is enough.
+- Recharts lazy-load / bundle visualizer: current bundle is dominated by React + shadcn primitives; splitting Recharts saves <30 KB gzipped and adds a load spinner. Revisit if the app grows.
+
+### How to verify
+- Dashboard load: single `rpc('get_dashboard_kpis')` call in the Network tab, replacing 6 parallel `from(...)` requests.
+- Header/Traceability search: only one request per typing pause, not one per keystroke.
+- Slow queries: `supabase--slow_queries` still shows all reads under 10 ms after seed data.
