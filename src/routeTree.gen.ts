@@ -14,8 +14,10 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedVendorsRouteImport } from './routes/_authenticated/vendors'
 import { Route as AuthenticatedRawMaterialsRouteImport } from './routes/_authenticated/raw-materials'
+import { Route as AuthenticatedProductsRouteImport } from './routes/_authenticated/products'
 import { Route as AuthenticatedPartsRouteImport } from './routes/_authenticated/parts'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedProductsIdBomRouteImport } from './routes/_authenticated/products.$id.bom'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -42,6 +44,11 @@ const AuthenticatedRawMaterialsRoute =
     path: '/raw-materials',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedProductsRoute = AuthenticatedProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedPartsRoute = AuthenticatedPartsRouteImport.update({
   id: '/parts',
   path: '/parts',
@@ -52,22 +59,32 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedProductsIdBomRoute =
+  AuthenticatedProductsIdBomRouteImport.update({
+    id: '/$id/bom',
+    path: '/$id/bom',
+    getParentRoute: () => AuthenticatedProductsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/parts': typeof AuthenticatedPartsRoute
+  '/products': typeof AuthenticatedProductsRouteWithChildren
   '/raw-materials': typeof AuthenticatedRawMaterialsRoute
   '/vendors': typeof AuthenticatedVendorsRoute
+  '/products/$id/bom': typeof AuthenticatedProductsIdBomRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/parts': typeof AuthenticatedPartsRoute
+  '/products': typeof AuthenticatedProductsRouteWithChildren
   '/raw-materials': typeof AuthenticatedRawMaterialsRoute
   '/vendors': typeof AuthenticatedVendorsRoute
+  '/products/$id/bom': typeof AuthenticatedProductsIdBomRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -76,8 +93,10 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/parts': typeof AuthenticatedPartsRoute
+  '/_authenticated/products': typeof AuthenticatedProductsRouteWithChildren
   '/_authenticated/raw-materials': typeof AuthenticatedRawMaterialsRoute
   '/_authenticated/vendors': typeof AuthenticatedVendorsRoute
+  '/_authenticated/products/$id/bom': typeof AuthenticatedProductsIdBomRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -86,10 +105,20 @@ export interface FileRouteTypes {
     | '/auth'
     | '/dashboard'
     | '/parts'
+    | '/products'
     | '/raw-materials'
     | '/vendors'
+    | '/products/$id/bom'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/dashboard' | '/parts' | '/raw-materials' | '/vendors'
+  to:
+    | '/'
+    | '/auth'
+    | '/dashboard'
+    | '/parts'
+    | '/products'
+    | '/raw-materials'
+    | '/vendors'
+    | '/products/$id/bom'
   id:
     | '__root__'
     | '/'
@@ -97,8 +126,10 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/dashboard'
     | '/_authenticated/parts'
+    | '/_authenticated/products'
     | '/_authenticated/raw-materials'
     | '/_authenticated/vendors'
+    | '/_authenticated/products/$id/bom'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -144,6 +175,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRawMaterialsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/products': {
+      id: '/_authenticated/products'
+      path: '/products'
+      fullPath: '/products'
+      preLoaderRoute: typeof AuthenticatedProductsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/parts': {
       id: '/_authenticated/parts'
       path: '/parts'
@@ -158,12 +196,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/products/$id/bom': {
+      id: '/_authenticated/products/$id/bom'
+      path: '/$id/bom'
+      fullPath: '/products/$id/bom'
+      preLoaderRoute: typeof AuthenticatedProductsIdBomRouteImport
+      parentRoute: typeof AuthenticatedProductsRoute
+    }
   }
 }
+
+interface AuthenticatedProductsRouteChildren {
+  AuthenticatedProductsIdBomRoute: typeof AuthenticatedProductsIdBomRoute
+}
+
+const AuthenticatedProductsRouteChildren: AuthenticatedProductsRouteChildren = {
+  AuthenticatedProductsIdBomRoute: AuthenticatedProductsIdBomRoute,
+}
+
+const AuthenticatedProductsRouteWithChildren =
+  AuthenticatedProductsRoute._addFileChildren(
+    AuthenticatedProductsRouteChildren,
+  )
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedPartsRoute: typeof AuthenticatedPartsRoute
+  AuthenticatedProductsRoute: typeof AuthenticatedProductsRouteWithChildren
   AuthenticatedRawMaterialsRoute: typeof AuthenticatedRawMaterialsRoute
   AuthenticatedVendorsRoute: typeof AuthenticatedVendorsRoute
 }
@@ -171,6 +230,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedPartsRoute: AuthenticatedPartsRoute,
+  AuthenticatedProductsRoute: AuthenticatedProductsRouteWithChildren,
   AuthenticatedRawMaterialsRoute: AuthenticatedRawMaterialsRoute,
   AuthenticatedVendorsRoute: AuthenticatedVendorsRoute,
 }
