@@ -9,6 +9,7 @@ import { PageHeader } from "@/components/inventory/page-header";
 import { MaterialBadge } from "@/components/inventory/material-badge";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { fmtDate, fmtKg, fmtNum } from "@/lib/inventory/format";
 
@@ -98,7 +99,12 @@ function TraceView({ result }: { result: Result }) {
     },
   });
 
-  if (!data) return <p className="text-sm text-muted-foreground">Loading…</p>;
+  if (!data) return (
+    <div className="space-y-4">
+      <Skeleton className="h-40 w-full" />
+      <Skeleton className="h-24 w-full" />
+    </div>
+  );
 
   return (
     <div className="space-y-6">
