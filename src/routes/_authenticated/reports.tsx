@@ -1,8 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useState, useMemo } from "react";
+import { useState, useMemo, lazy, Suspense } from "react";
 import { Download, BarChart3 } from "lucide-react";
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from "recharts";
 
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader } from "@/components/inventory/page-header";
@@ -10,10 +9,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { TableSkeleton } from "@/components/inventory/skeletons";
 import { fmtDate, fmtKg, fmtNum, fmtCurrency, wastageReasonLabel } from "@/lib/inventory/format";
 import { downloadCsv } from "@/lib/inventory/csv";
+
+// Recharts is ~90KB gzipped — load it only when Reports is opened.
+const WastageCharts = lazy(() => import("@/components/reports/wastage-charts"));
+const MonthlyChart = lazy(() => import("@/components/reports/monthly-chart"));
+
+const ChartFallback = ({ height = 260 }: { height?: number }) => <Skeleton className="w-full" style={{ height }} />;
 
 export const Route = createFileRoute("/_authenticated/reports")({
   component: ReportsPage,
