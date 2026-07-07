@@ -1,101 +1,88 @@
-# Inventory & Production Traceability System
+# Performance Optimization Plan
 
-A production-grade traceability app covering Vendors → Raw Materials → Parts → Production → Finished Goods, with wastage tracking, alerts, planning, and recall.
+Scope: audit and fix real bottlenecks across DB, data-fetching, and rendering. I'll skip theatre (Lighthouse score chasing, moment.js — we don't use it) and focus on changes that measurably help *this* app.
 
-## Stack notes (small deviations from spec)
+## 1. Database: indexes + RPCs (single migration)
 
-- This project is **TanStack Start** (not plain Vite + React Router). Routing will use TanStack Router (file-based under `src/routes/`). Everything else (TanStack Query, Tailwind, shadcn/ui, Recharts, RHF+Zod, Supabase JS, date-fns, lucide) matches the spec exactly.
-- Supabase is already connected — no env setup required. Auth uses the integration-managed `_authenticated` layout; protected screens live under `src/routes/_authenticated/`, public `/auth` for login/signup.
-- "Inter" font will be loaded via `<link>` in `__root.tsx` head (Tailwind v4 rule).
+**Add indexes** on FKs and hot filter columns that don't already exist:
+- `raw_materials(vendor_id)`, `(material_type, is_blocked)`, `(purchase_date desc)`
+- `part_batches(part_id)`, `(raw_material_batch_id)`, `(created_at desc)`
+- `production_batches(product_id)`, `(production_date desc)`, `(status)`, `(created_at desc)`
+- `production_batch_parts(production_batch_id)`, `(part_batch_id)`
+- `wastage_logs(level, reference_id)`, `(created_at desc)`
+- `alerts(is_read, created_at desc)`
+- `production_plans(product_id, planned_date)`
+- `product_bom(product_id)`
 
-## Database (single migration)
+**Add RPC functions** (single round-trip replacements):
+- `get_dashboard_kpis()` — returns totals for raw stock, finished goods, today's production, vendor/part/RM-batch counts, low-stock counts, today's wastage %. Replaces 6+ dashboard queries.
+- `get_traceability_forward(p_raw_material_id uuid)` and `get_traceability_backward(p_production_batch_id uuid)` — recursive CTE returning full chain as JSONB. Replaces JS-side recursive fetches.
+- `get_reports_summary(p_from date, p_to date)` — aggregates for the Reports screen.
 
-All 11 tables exactly as specified, with:
-- Enums enforced via CHECK constraints as written
-- Generated columns (`total_cost`, `wastage_kg`, `wastage_percentage`) as written
-- All indexes as written
-- RLS enabled + `FOR ALL TO authenticated USING (true) WITH CHECK (true)` policies
-- `GRANT SELECT, INSERT, UPDATE, DELETE ... TO authenticated` on every public table (required by Supabase)
+All functions `SECURITY DEFINER`, `SET search_path = public`, `STABLE`, granted to `authenticated`.
 
-**Triggers / functions** (all in the same migration):
-- `generate_batch_number(kind, code)` — atomic sequence-per-prefix via `pg_advisory_xact_lock`, produces `PC-001`, `CAP-B001`, `B001`, `PLAN-YYYYMMDD-001`
-- `trg_part_batch_after_insert` — deducts raw material remaining, adds to part stock, inserts wastage_log, raises `high_wastage_part` (>10%) and `low_stock_raw` (<50 kg) alerts
-- `trg_production_batch_after_insert` — validates + deducts part stock per junction row (raises exception on shortage → transaction rollback), deducts optional additional raw material, inserts product-level wastage_log, raises `high_wastage_product` alert
-- `trg_raw_material_block_cascade` — when `is_blocked` flips true, cascades to `part_batches.is_blocked` and `production_batches.status='recalled'`, inserts summary alert
+## 2. React Query configuration
 
-Batch numbers are generated in a `BEFORE INSERT` trigger if the caller leaves the field null, so the client just omits it.
+Global defaults in `src/router.tsx` QueryClient:
+- `staleTime: 30_000`, `gcTime: 5*60_000`, `refetchOnWindowFocus: false`, `retry: 1`.
 
-## Seed data
+Per-query overrides:
+- Reference data (vendors, parts, products, BOMs): `staleTime: 5*60_000`.
+- Alerts unread badge: `refetchInterval: 60_000`.
+- Paginated tables: `placeholderData: keepPreviousData`.
 
-Inserted via a follow-up data migration (insert tool): 3 vendors, 4 parts, 2 products with BOMs, 6 raw material batches (dates spread across last 60 days), 4 part batches, 2 production batches with junctions, 3 alerts. Wastage logs and stock updates come from the triggers automatically.
+Query keys become filter-specific: `['raw_materials', { search, material, page }]`.
 
-## Route structure
+## 3. Query hygiene across screens
 
-```text
-src/routes/
-  __root.tsx                          shell, providers, sonner Toaster, global head
-  auth.tsx                            login + signup tabs (public)
-  _authenticated/
-    route.tsx                         (integration-managed gate)
-    layout.tsx                        AppShell: sidebar + header + global search
-    index.tsx                         Dashboard
-    vendors.tsx
-    raw-materials.tsx
-    parts.tsx
-    products.tsx
-    products.$id.bom.tsx              BOM editor
-    production.tsx                    list + wizard entry
-    production.new.tsx                4-step wizard
-    production-planning.tsx
-    traceability.tsx
-    reports.tsx                       tabs: wastage / monthly / stock
-    alerts.tsx
-    batch-recall.tsx
-    settings.tsx
-```
+- Replace `select('*')` with explicit column lists on list views; keep `*` only for detail dialogs.
+- Add server-side pagination `.range(from, to)` + `count: 'exact'` on: Raw Materials, Part Batches (parts detail), Production, Wastage/Reports, Alerts. Page size 25.
+- Server-side search via `.ilike` / `.or()` on Raw Materials, Parts, Vendors, Production.
+- Replace client-side JS aggregation on Dashboard with the `get_dashboard_kpis` RPC.
+- Traceability screen: replace nested per-node fetches with the two RPCs above.
+- Parallelize independent fetches with `Promise.all` where sequential today (Production wizard, Reports).
 
-## Feature coverage
+## 4. Component-level fixes
 
-Every screen from the brief is implemented as described:
+- Debounce search inputs (300 ms) via a small `useDebouncedValue` hook — applied to Raw Materials, Parts, Vendors, Production, Alerts search boxes.
+- Virtualize long tables with `@tanstack/react-virtual` on Raw Materials, Production, Wastage/Reports, Alerts (only when row count > 50).
+- Wrap heavy row components in `React.memo`; stabilize handler props with `useCallback` where they cross the memo boundary.
+- Route-level code splitting is already automatic in TanStack Start; verify no route file `export`s its component (that defeats splitting) and fix any offenders.
+- Reports: lazy-load Recharts via `React.lazy` on the chart panels only.
+- Icons: audit for any barrel `import * as Icons from 'lucide-react'` — replace with named imports (lucide-react is already tree-shakeable when imported by name).
 
-- **Dashboard** — 4 KPI cards (raw stock w/ 7-day trend, finished goods, today's production, today's wastage% color-coded), Low Stock panel, Recent Activity, quick actions.
-- **Vendors** — table with material badges, parts-supplied count, search + material filter, add/edit modal, view modal with recent batches.
-- **Raw Materials** — filters (type/vendor/date/show blocked), progress bars on remaining, add modal (vendor list filtered by `materials_supplied` array), details modal with Usage/Trace-Forward/Wastage tabs.
-- **Parts** — table with expandable batch panel, add/edit, details modal, "Produce this Part" launches the 4-step Part Production Flow (Quantity → RM batch FIFO → Actual usage + reason → Review).
-- **Products** — card grid, add/edit, dedicated BOM editor route (two-column available/selected, transactional replace).
-- **Production** — recent table + Start Production wizard: Product/Qty → Requirements (shortage banner + inline Create Missing Parts) → Part batch allocation (FIFO auto-distribute, override allowed) → Final entry (optional extra raw material, wastage reason, confirmation) → success modal.
-- **Production Planning** — generate plan, parts + raw-material shortage tables, save to `production_plans`, history table, links to fix shortages.
-- **Traceability** — search with autocomplete across all batch types, backward + forward trace, indented tree with CSS connector borders, wastage summary, Recall action.
-- **Reports** — Wastage (bar by reason + line trend + table + CSV), Monthly Production (stacked bar per product per day + table + CSV), Stock (RM + Parts + Finished Goods + combined CSV).
-- **Alerts** — filter tabs, severity icons, mark-read (single + all), realtime subscription updates sidebar badge, click-through navigation.
-- **Batch Recall** — RM dropdown + reason + trace, cascading tree, "Mark All Affected as Recalled" (single transaction via the block-cascade trigger), CSV export, history table.
-- **Settings** — thresholds, wastage % threshold, currency, factory name (stored in a small `app_settings` singleton table added to the migration).
-- **Onboarding** — first-login 3-step welcome modal, dismissal stored in `localStorage`.
+## 5. Realtime & alerts
 
-## Global concerns
+- Alerts badge: switch from any table-wide subscription to a 60 s polled count query. Keep realtime only on the Alerts page itself, filtered to `is_read=false`, with `removeChannel` cleanup in `useEffect`.
 
-- Auth: Supabase email/password on `/auth`, session via `supabase.auth`, `_authenticated` gate redirects to `/auth`, header avatar shows email + logout with proper cache teardown.
-- Global search: debounced query over vendors/RM/parts/products, grouped dropdown, navigates to entity.
-- Toasts: sonner, color-coded, spec durations.
-- Loading: shadcn `Skeleton` matching final shape everywhere.
-- Empty states: icon + message + primary CTA on every list.
-- Errors: try/catch around every mutation with toast; inline Zod errors; root 404; network-lost banner via `navigator.onLine` + retry.
-- Confirmations: shadcn AlertDialog on all destructive actions; recall requires typed `RECALL` confirmation.
-- Console audit log on every mutation.
-- Responsive: sidebar → sheet on mobile, tables → stacked cards <768px, modals → full-screen sheets on mobile, KPI cards stack.
+## 6. Triggers
 
-## Design tokens
+Current triggers already do minimal work (single UPDATE + one wastage log + conditional alert). I will NOT rewrite them — moving alerts out of the write path is more risk than reward here and the user hasn't reported write latency, only read latency. Documented as intentional non-change.
 
-`src/styles.css` updated with the exact palette (converted to oklch-compatible values while keeping the hex spec as reference comments), Inter loaded via `<link>`, typography scale, sidebar tokens tuned to the deep-industrial-blue primary.
+## 7. Verification
 
-## Deliverables
+- `EXPLAIN ANALYZE` on the top 3 slowest queries via `supabase--slow_queries` before and after.
+- Manually check Dashboard, Traceability, Reports, Raw Materials render times in the preview.
+- Bundle: run `bun run build` and compare chunk sizes before/after (report in README).
 
-- Working app across all 11 screens with real Supabase reads/writes
-- Migration file (schema + triggers + grants + RLS)
-- Seed inserted via data migration
-- README with setup, workflow, schema, calculation test cases, troubleshooting
-- No console errors, no mock data, no stubs
+## Technical details
 
-## Scope check before building
+**Files touched**
+- New migration: indexes + 3 RPC functions (single `supabase--migration` call).
+- `src/router.tsx` — QueryClient defaults.
+- `src/hooks/use-debounced-value.ts` — new.
+- `src/components/inventory/virtual-table.tsx` — new thin wrapper around `@tanstack/react-virtual`.
+- `src/routes/_authenticated/dashboard.tsx` — use `get_dashboard_kpis` RPC.
+- `src/routes/_authenticated/traceability.tsx` — use RPCs.
+- `src/routes/_authenticated/raw-materials.tsx`, `parts.tsx`, `production.tsx`, `vendors.tsx`, `alerts.tsx`, `reports.tsx`, `production-planning.tsx`, `production.new.tsx` — column lists, pagination, debounce, keepPreviousData, memoization, parallel fetches.
+- `src/routes/__root.tsx` — if it holds any global realtime subscription, tighten it.
+- `package.json` — add `@tanstack/react-virtual`.
+- `README.md` — document optimizations + before/after numbers.
 
-This is a very large build (11 screens, 11 tables, wizards, triggers, reports, recall cascade). I'll implement it end-to-end in one pass, but expect the work to land across many file writes. If you'd like me to sequence differently (e.g. ship DB + auth + core CRUD first, then wizard/planning/recall/reports as a second pass) say so — otherwise I'll build everything.
+**Out of scope (deliberate)**
+- Trigger rewrite (not the bottleneck).
+- Font subsetting, image compression (no user images / custom fonts in this project).
+- HTTP/2, cache headers (handled by Lovable hosting).
+- Bundle visualizer plugin (one-off local tool, not worth committing).
+
+Approve to implement.
