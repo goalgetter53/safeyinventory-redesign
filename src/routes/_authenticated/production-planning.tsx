@@ -30,10 +30,11 @@ function PlanningPage() {
   const [date, setDate] = useState(new Date(Date.now() + 86400000).toISOString().slice(0, 10));
   const [plan, setPlan] = useState<{ parts: PartReq[]; rm: RmReq[] } | null>(null);
 
-  const { data: products } = useQuery({ queryKey: ["products", "active"], queryFn: async () => (await supabase.from("products").select("*").eq("is_active", true).order("product_name")).data ?? [] });
+  const { data: products } = useQuery({ queryKey: ["products", "active"], staleTime: 5 * 60_000, queryFn: async () => (await supabase.from("products").select("id,product_name,product_code").eq("is_active", true).order("product_name")).data ?? [] });
   const { data: plans } = useQuery({
     queryKey: ["production_plans"],
-    queryFn: async () => (await supabase.from("production_plans").select("*, products(product_name)").order("created_at", { ascending: false })).data ?? [],
+    staleTime: 30_000,
+    queryFn: async () => (await supabase.from("production_plans").select("id,plan_number,planned_quantity,planned_date,status,products(product_name)").order("created_at", { ascending: false }).limit(50)).data ?? [],
   });
 
   const generate = useMutation({
