@@ -84,14 +84,14 @@ function WastageReport() {
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <ChartCard title="Wastage by reason (kg)">
-          <ResponsiveContainer width="100%" height={260}>
-            <BarChart data={byReason}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="reason" /><YAxis /><Tooltip /><Bar dataKey="kg" fill="var(--color-chart-1)" /></BarChart>
-          </ResponsiveContainer>
+          <Suspense fallback={<ChartFallback />}>
+            <WastageChartsWastageOnly byReason={byReason} byDate={byDate} kind="reason" />
+          </Suspense>
         </ChartCard>
         <ChartCard title="Wastage trend (kg over time)">
-          <ResponsiveContainer width="100%" height={260}>
-            <LineChart data={byDate}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="date" /><YAxis /><Tooltip /><Line type="monotone" dataKey="kg" stroke="var(--color-chart-4)" /></LineChart>
-          </ResponsiveContainer>
+          <Suspense fallback={<ChartFallback />}>
+            <WastageChartsWastageOnly byReason={byReason} byDate={byDate} kind="trend" />
+          </Suspense>
         </ChartCard>
       </div>
       <Card>
