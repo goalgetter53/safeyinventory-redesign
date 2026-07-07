@@ -78,12 +78,12 @@ function WastageReport() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <ChartCard title="Wastage by reason (kg)">
           <ResponsiveContainer width="100%" height={260}>
-            <BarChart data={byReason}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="reason" /><YAxis /><Tooltip /><Bar dataKey="kg" fill="hsl(var(--chart-1))" /></BarChart>
+            <BarChart data={byReason}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="reason" /><YAxis /><Tooltip /><Bar dataKey="kg" fill="var(--color-chart-1)" /></BarChart>
           </ResponsiveContainer>
         </ChartCard>
         <ChartCard title="Wastage trend (kg over time)">
           <ResponsiveContainer width="100%" height={260}>
-            <LineChart data={byDate}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="date" /><YAxis /><Tooltip /><Line type="monotone" dataKey="kg" stroke="hsl(var(--chart-4))" /></LineChart>
+            <LineChart data={byDate}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="date" /><YAxis /><Tooltip /><Line type="monotone" dataKey="kg" stroke="var(--color-chart-4)" /></LineChart>
           </ResponsiveContainer>
         </ChartCard>
       </div>
@@ -140,7 +140,7 @@ function MonthlyReport() {
     return Array.from(map.values()).sort((a, b) => a.date.localeCompare(b.date));
   }, [data]);
   const products = Array.from(new Set((data ?? []).map((r: any) => r.products?.product_name ?? "Unknown")));
-  const colors = ["hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-3))", "hsl(var(--chart-4))", "hsl(var(--chart-5))"];
+  const colors = ["var(--color-chart-1)", "var(--color-chart-2)", "var(--color-chart-3)", "var(--color-chart-4)", "var(--color-chart-5)"];
 
   return (
     <div className="space-y-4">
