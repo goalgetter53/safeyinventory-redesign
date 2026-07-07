@@ -16,6 +16,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -124,6 +125,9 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 }
 
 function useUnreadAlertsCount() {
+  // Poll every 60s instead of holding an always-open realtime channel.
+  // Realtime on `alerts` fires on every write anywhere in the app and doubled
+  // the query cost since react-query still had a refetchInterval on top.
   const { data } = useQuery({
     queryKey: ["alerts", "unread-count"],
     queryFn: async () => {
@@ -131,14 +135,9 @@ function useUnreadAlertsCount() {
       if (error) throw error;
       return count ?? 0;
     },
-    refetchInterval: 30_000,
+    refetchInterval: 60_000,
+    staleTime: 30_000,
   });
-  useEffect(() => {
-    const ch = supabase.channel("alerts-count").on("postgres_changes", { event: "*", schema: "public", table: "alerts" }, () => {
-      // realtime hint — react-query will refetch on interval
-    }).subscribe();
-    return () => { supabase.removeChannel(ch); };
-  }, []);
   return data ?? 0;
 }
 
@@ -189,16 +188,19 @@ function GlobalSearch() {
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  // Debounce so we don't fire 4 Supabase requests on every keystroke.
+  const debouncedQ = useDebouncedValue(q, 300);
 
   const { data } = useQuery({
-    queryKey: ["global-search", q],
-    enabled: q.length >= 2,
+    queryKey: ["global-search", debouncedQ],
+    enabled: debouncedQ.length >= 2,
+    staleTime: 30_000,
     queryFn: async () => {
       const [v, r, p, pr] = await Promise.all([
-        supabase.from("vendors").select("id,name").ilike("name", `%${q}%`).limit(5),
-        supabase.from("raw_materials").select("id,batch_number,material_type").ilike("batch_number", `%${q}%`).limit(5),
-        supabase.from("parts").select("id,part_name").ilike("part_name", `%${q}%`).limit(5),
-        supabase.from("products").select("id,product_name,product_code").or(`product_name.ilike.%${q}%,product_code.ilike.%${q}%`).limit(5),
+        supabase.from("vendors").select("id,name").ilike("name", `%${debouncedQ}%`).limit(5),
+        supabase.from("raw_materials").select("id,batch_number,material_type").ilike("batch_number", `%${debouncedQ}%`).limit(5),
+        supabase.from("parts").select("id,part_name").ilike("part_name", `%${debouncedQ}%`).limit(5),
+        supabase.from("products").select("id,product_name,product_code").or(`product_name.ilike.%${debouncedQ}%,product_code.ilike.%${debouncedQ}%`).limit(5),
       ]);
       return {
         vendors: v.data ?? [],
