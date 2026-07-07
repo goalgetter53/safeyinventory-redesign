@@ -18,7 +18,14 @@ export const getRouter = () => {
     routeTree,
     context: { queryClient },
     scrollRestoration: true,
+    // Prefetch on hover/focus (~50ms intent delay) — makes navigation feel instant.
+    defaultPreload: "intent",
+    defaultPreloadDelay: 50,
+    // Let TanStack Query own cache freshness for prefetched routes.
     defaultPreloadStaleTime: 0,
+    // Show pending UI only if the load takes longer than 200ms; keeps fast nav flicker-free.
+    defaultPendingMs: 200,
+    defaultPendingMinMs: 300,
   });
 
   return router;
