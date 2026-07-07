@@ -105,18 +105,29 @@ function VendorsPage() {
   return (
     <div>
       <PageHeader
-        title="Vendor Management"
-        subtitle="Manage your raw material suppliers"
-        actions={<Button onClick={() => setAddOpen(true)}><Plus className="h-4 w-4" /> Add Vendor</Button>}
+        title="Vendors"
+        description="Suppliers that feed raw material into production. Active vendors are eligible for FIFO allocation."
+        meta={
+          <>
+            <span className="text-[12px] text-muted-foreground">Total <span className="text-foreground num font-medium ml-1">{filtered.length}</span></span>
+            <span className="text-[12px] text-muted-foreground">Active <span className="text-foreground num font-medium ml-1">{filtered.filter((v) => v.is_active).length}</span></span>
+            <span className="text-[12px] text-muted-foreground">Filter <span className="text-foreground font-medium ml-1">{material === "all" ? "All materials" : material}</span></span>
+          </>
+        }
+        actions={
+          <Button onClick={() => setAddOpen(true)} className="h-8 text-[13px]">
+            <Plus className="h-3.5 w-3.5" /> Add vendor
+          </Button>
+        }
       />
 
-      <div className="flex flex-col sm:flex-row gap-3 mb-4">
+      <div className="flex flex-col sm:flex-row gap-2 mb-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search by name, phone, material…" value={q} onChange={(e) => setQ(e.target.value)} className="pl-9" />
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+          <Input placeholder="Search by name, phone, material…" value={q} onChange={(e) => setQ(e.target.value)} className="pl-8 h-8 text-[13px]" />
         </div>
         <Select value={material} onValueChange={setMaterial}>
-          <SelectTrigger className="sm:w-48"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="sm:w-48 h-8 text-[13px]"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All materials</SelectItem>
             {MATERIAL_TYPES.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
@@ -124,44 +135,42 @@ function VendorsPage() {
         </Select>
       </div>
 
-      <Card>
-        <CardContent className="p-0">
-          {isLoading ? <div className="p-4"><TableSkeleton /></div> : filtered.length === 0 ? (
-            <EmptyState icon={Users} title="No vendors yet" description="Add your first supplier to start tracking raw material sources." action={<Button onClick={() => setAddOpen(true)}><Plus className="h-4 w-4" /> Add Vendor</Button>} />
-          ) : (
-            <Table>
-              <TableHeader className="bg-muted/50">
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>Address</TableHead>
-                  <TableHead>Materials</TableHead>
-                  <TableHead>Parts</TableHead>
-                  <TableHead>Active</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+      {isLoading ? <div className="p-4"><TableSkeleton /></div> : filtered.length === 0 ? (
+        <EmptyState icon={Users} title="No vendors yet" description="Add your first supplier to start tracking raw material sources." action={<Button onClick={() => setAddOpen(true)}><Plus className="h-4 w-4" /> Add Vendor</Button>} />
+      ) : (
+        <Card className="overflow-hidden p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Phone</TableHead>
+                <TableHead>Address</TableHead>
+                <TableHead>Materials</TableHead>
+                <TableHead className="text-right">Parts</TableHead>
+                <TableHead>Active</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filtered.map((v) => (
+                <TableRow key={v.id} className="row-rule">
+                  <TableCell className="font-medium text-[13px] py-2.5">{v.name}</TableCell>
+                  <TableCell className="text-[12.5px] text-muted-foreground py-2.5">{v.phone}</TableCell>
+                  <TableCell className="max-w-xs truncate text-muted-foreground text-[13px] py-2.5">{v.address}</TableCell>
+                  <TableCell className="py-2.5"><div className="flex flex-wrap gap-1">{(v.materials_supplied ?? []).map((m: string) => <MaterialBadge key={m} material={m} />)}</div></TableCell>
+                  <TableCell className="text-right num py-2.5">{partCounts?.[v.id] ?? 0}</TableCell>
+                  <TableCell className="py-2.5"><Switch checked={v.is_active} onCheckedChange={(c) => toggleActive.mutate({ id: v.id, is_active: c })} /></TableCell>
+                  <TableCell className="text-right py-2.5">
+                    <Button variant="ghost" size="icon" onClick={() => setViewing(v)} className="h-7 w-7"><Eye className="h-3.5 w-3.5" /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => setEditing(v)} className="h-7 w-7"><Pencil className="h-3.5 w-3.5" /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => setDeleting(v)} className="h-7 w-7"><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtered.map((v) => (
-                  <TableRow key={v.id} className="hover:bg-muted/30">
-                    <TableCell className="font-medium">{v.name}</TableCell>
-                    <TableCell>{v.phone}</TableCell>
-                    <TableCell className="max-w-xs truncate text-muted-foreground">{v.address}</TableCell>
-                    <TableCell><div className="flex flex-wrap gap-1">{(v.materials_supplied ?? []).map((m: string) => <MaterialBadge key={m} material={m} />)}</div></TableCell>
-                    <TableCell>{partCounts?.[v.id] ?? 0}</TableCell>
-                    <TableCell><Switch checked={v.is_active} onCheckedChange={(c) => toggleActive.mutate({ id: v.id, is_active: c })} /></TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="icon" onClick={() => setViewing(v)}><Eye className="h-4 w-4" /></Button>
-                      <Button variant="ghost" size="icon" onClick={() => setEditing(v)}><Pencil className="h-4 w-4" /></Button>
-                      <Button variant="ghost" size="icon" onClick={() => setDeleting(v)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+              ))}
+            </TableBody>
+          </Table>
+        </Card>
+      )}
 
       <VendorForm open={addOpen || !!editing} onOpenChange={(o) => { if (!o) { setAddOpen(false); setEditing(null); } }} vendor={editing} />
       <VendorView open={!!viewing} onOpenChange={(o) => !o && setViewing(null)} vendor={viewing} />
