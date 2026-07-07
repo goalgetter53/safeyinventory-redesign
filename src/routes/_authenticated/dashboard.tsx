@@ -44,14 +44,15 @@ function Dashboard() {
     },
   });
 
-  const cards = [
+  const cards: Array<{ to: string; icon: any; iconBg: string; label: string; value?: string; sub?: string }> = [
     { to: "/raw-materials", icon: Layers, iconBg: "bg-primary/10 text-primary", label: "Total Raw Material Stock", value: data ? fmtKg(data.totalRaw, 1) : undefined, sub: data ? `${data.materialTypes} materials tracked` : undefined },
     { to: "/products", icon: Boxes, iconBg: "bg-emerald-100 text-emerald-700", label: "Total Finished Goods", value: data ? fmtNum(data.totalGoods) : undefined, sub: data ? `${data.productsCount} products` : undefined },
     { to: "/production", icon: Factory, iconBg: "bg-amber-100 text-amber-700", label: "Today Production", value: data ? fmtNum(data.todayUnits) : undefined, sub: data ? `${data.prodBatches} batches all-time` : undefined },
     { to: "/vendors", icon: Users, iconBg: "bg-primary/10 text-primary", label: "Vendors", value: data ? fmtNum(data.vendorsCount) : undefined },
     { to: "/parts", icon: Wrench, iconBg: "bg-primary/10 text-primary", label: "Parts in Stock", value: data ? fmtNum(data.partsStock) : undefined },
     { to: "/raw-materials", icon: Package, iconBg: "bg-primary/10 text-primary", label: "RM Batches", value: data ? fmtNum(data.rmBatches) : undefined },
-  ] as const;
+  ];
+
 
   return (
     <div>
