@@ -46,6 +46,7 @@ function PartsPage() {
 
   const { data: parts, isLoading } = useQuery({
     queryKey: ["parts"],
+    staleTime: 5 * 60_000,
     queryFn: async () => (await supabase.from("parts").select("*").order("part_name")).data ?? [],
   });
 

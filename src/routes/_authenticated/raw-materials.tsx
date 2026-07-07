@@ -49,14 +49,21 @@ function RawMaterialsPage() {
   const [viewing, setViewing] = useState<any | null>(null);
 
   const { data: vendors } = useQuery({
-    queryKey: ["vendors"],
+    queryKey: ["vendors", "for-select"],
+    // Reference data — cache 5 min, avoid refetch on every mount.
+    staleTime: 5 * 60_000,
     queryFn: async () => (await supabase.from("vendors").select("id,name,materials_supplied").order("name")).data ?? [],
   });
 
   const { data: materials, isLoading } = useQuery({
-    queryKey: ["raw_materials"],
+    queryKey: ["raw_materials", "list"],
+    // Transactional data, but changes rarely — keep for 30 s.
+    staleTime: 30_000,
     queryFn: async () => {
-      const { data, error } = await supabase.from("raw_materials").select("*, vendors(name)").order("purchase_date", { ascending: false });
+      const { data, error } = await supabase
+        .from("raw_materials")
+        .select("id,batch_number,material_type,vendor_id,initial_quantity_kg,remaining_quantity_kg,rate_per_kg,total_cost,purchase_date,is_blocked,vendors(name)")
+        .order("purchase_date", { ascending: false });
       if (error) throw error;
       return data;
     },

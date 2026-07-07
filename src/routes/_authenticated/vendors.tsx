@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Plus, Users, Search, Pencil, Trash2, Eye, Loader2 } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { PageHeader } from "@/components/inventory/page-header";
 import { EmptyState } from "@/components/inventory/empty-state";
 import { MaterialBadge } from "@/components/inventory/material-badge";
@@ -41,6 +42,7 @@ type FormValues = z.infer<typeof schema>;
 
 function VendorsPage() {
   const [q, setQ] = useState("");
+  const debouncedQ = useDebouncedValue(q, 300);
   const [material, setMaterial] = useState<string>("all");
   const [addOpen, setAddOpen] = useState(false);
   const [editing, setEditing] = useState<any | null>(null);
@@ -50,6 +52,7 @@ function VendorsPage() {
 
   const { data: vendors, isLoading } = useQuery({
     queryKey: ["vendors"],
+    staleTime: 5 * 60_000,
     queryFn: async () => {
       const { data, error } = await supabase.from("vendors").select("*").order("name");
       if (error) throw error;
@@ -93,7 +96,8 @@ function VendorsPage() {
   });
 
   const filtered = (vendors ?? []).filter((v) => {
-    const matchQ = !q || [v.name, v.phone, ...(v.materials_supplied ?? [])].some((f) => String(f).toLowerCase().includes(q.toLowerCase()));
+    const term = debouncedQ.toLowerCase();
+    const matchQ = !term || [v.name, v.phone, ...(v.materials_supplied ?? [])].some((f) => String(f).toLowerCase().includes(term));
     const matchM = material === "all" || (v.materials_supplied ?? []).includes(material);
     return matchQ && matchM;
   });

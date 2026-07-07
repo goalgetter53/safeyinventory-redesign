@@ -44,8 +44,8 @@ function NewProductionWizard() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [successBatch, setSuccessBatch] = useState<string | null>(null);
 
-  const { data: products } = useQuery({ queryKey: ["products", "active"], queryFn: async () => (await supabase.from("products").select("*").eq("is_active", true).order("product_name")).data ?? [] });
-  const { data: rms } = useQuery({ queryKey: ["raw_materials", "active"], queryFn: async () => (await supabase.from("raw_materials").select("id, batch_number, material_type, remaining_quantity_kg, vendors(name)").eq("is_blocked", false).gt("remaining_quantity_kg", 0).order("purchase_date")).data ?? [] });
+  const { data: products } = useQuery({ queryKey: ["products", "active"], staleTime: 5 * 60_000, queryFn: async () => (await supabase.from("products").select("id,product_name,product_code").eq("is_active", true).order("product_name")).data ?? [] });
+  const { data: rms } = useQuery({ queryKey: ["raw_materials", "active"], staleTime: 30_000, queryFn: async () => (await supabase.from("raw_materials").select("id, batch_number, material_type, remaining_quantity_kg, vendors(name)").eq("is_blocked", false).gt("remaining_quantity_kg", 0).order("purchase_date")).data ?? [] });
 
   const expectedRawTotal = useMemo(() => plan.reduce((s, p) => s + p.required * p.consumption_per_unit_kg, 0), [plan]);
 

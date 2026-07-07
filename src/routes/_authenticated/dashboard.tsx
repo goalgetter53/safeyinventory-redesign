@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Package, Boxes, Factory, Users, Wrench, Layers } from "lucide-react";
+import { Package, Boxes, Factory, Users, Wrench, Layers, Bell, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader } from "@/components/inventory/page-header";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,52 +12,51 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
 });
 
+type Kpis = {
+  total_raw_stock_kg: number;
+  active_raw_batches: number;
+  material_types: number;
+  total_finished_goods: number;
+  total_production_batches: number;
+  todays_batches: number;
+  todays_units: number;
+  todays_wastage_kg: number;
+  todays_actual_kg: number;
+  vendors_count: number;
+  active_products: number;
+  parts_stock: number;
+  low_stock_parts: number;
+  low_stock_raw: number;
+  unread_alerts: number;
+};
+
 function Dashboard() {
   const { data, isLoading } = useQuery({
     queryKey: ["dashboard-kpis"],
-    queryFn: async () => {
-      const today = new Date().toISOString().slice(0, 10);
-      const [rm, prodAll, todayProd, vendors, parts, products] = await Promise.all([
-        supabase.from("raw_materials").select("id,remaining_quantity_kg,material_type").eq("is_blocked", false),
-        supabase.from("production_batches").select("id,quantity_produced"),
-        supabase.from("production_batches").select("id,quantity_produced").eq("production_date", today),
-        supabase.from("vendors").select("id", { count: "exact", head: true }),
-        supabase.from("parts").select("id,current_stock"),
-        supabase.from("products").select("id", { count: "exact", head: true }).eq("is_active", true),
-      ]);
-      const totalRaw = (rm.data ?? []).reduce((s, r) => s + Number(r.remaining_quantity_kg), 0);
-      const materialTypes = new Set((rm.data ?? []).map((r) => r.material_type)).size;
-      const totalGoods = (prodAll.data ?? []).reduce((s, r) => s + Number(r.quantity_produced), 0);
-      const todayUnits = (todayProd.data ?? []).reduce((s, r) => s + Number(r.quantity_produced), 0);
-      const partsStock = (parts.data ?? []).reduce((s, p) => s + Number(p.current_stock), 0);
-      return {
-        totalRaw,
-        materialTypes,
-        totalGoods,
-        productsCount: products.count ?? 0,
-        todayUnits,
-        prodBatches: prodAll.data?.length ?? 0,
-        vendorsCount: vendors.count ?? 0,
-        partsStock,
-        rmBatches: rm.data?.length ?? 0,
-      };
+    // Dashboard aggregates change slowly relative to a page mount; cache 60 s.
+    staleTime: 60_000,
+    queryFn: async (): Promise<Kpis> => {
+      const { data, error } = await supabase.rpc("get_dashboard_kpis");
+      if (error) throw error;
+      return data as unknown as Kpis;
     },
   });
 
   const cards: Array<{ to: string; icon: any; iconBg: string; label: string; value?: string; sub?: string }> = [
-    { to: "/raw-materials", icon: Layers, iconBg: "bg-primary/10 text-primary", label: "Total Raw Material Stock", value: data ? fmtKg(data.totalRaw, 1) : undefined, sub: data ? `${data.materialTypes} materials tracked` : undefined },
-    { to: "/products", icon: Boxes, iconBg: "bg-emerald-100 text-emerald-700", label: "Total Finished Goods", value: data ? fmtNum(data.totalGoods) : undefined, sub: data ? `${data.productsCount} products` : undefined },
-    { to: "/production", icon: Factory, iconBg: "bg-amber-100 text-amber-700", label: "Today Production", value: data ? fmtNum(data.todayUnits) : undefined, sub: data ? `${data.prodBatches} batches all-time` : undefined },
-    { to: "/vendors", icon: Users, iconBg: "bg-primary/10 text-primary", label: "Vendors", value: data ? fmtNum(data.vendorsCount) : undefined },
-    { to: "/parts", icon: Wrench, iconBg: "bg-primary/10 text-primary", label: "Parts in Stock", value: data ? fmtNum(data.partsStock) : undefined },
-    { to: "/raw-materials", icon: Package, iconBg: "bg-primary/10 text-primary", label: "RM Batches", value: data ? fmtNum(data.rmBatches) : undefined },
+    { to: "/raw-materials", icon: Layers, iconBg: "bg-primary/10 text-primary", label: "Total Raw Material Stock", value: data ? fmtKg(Number(data.total_raw_stock_kg), 1) : undefined, sub: data ? `${data.material_types} materials · ${data.active_raw_batches} batches` : undefined },
+    { to: "/products", icon: Boxes, iconBg: "bg-emerald-100 text-emerald-700", label: "Total Finished Goods", value: data ? fmtNum(Number(data.total_finished_goods)) : undefined, sub: data ? `${data.active_products} products` : undefined },
+    { to: "/production", icon: Factory, iconBg: "bg-amber-100 text-amber-700", label: "Today Production", value: data ? fmtNum(Number(data.todays_units)) : undefined, sub: data ? `${data.todays_batches} batches today · ${data.total_production_batches} all-time` : undefined },
+    { to: "/vendors", icon: Users, iconBg: "bg-primary/10 text-primary", label: "Vendors", value: data ? fmtNum(data.vendors_count) : undefined },
+    { to: "/parts", icon: Wrench, iconBg: "bg-primary/10 text-primary", label: "Parts in Stock", value: data ? fmtNum(Number(data.parts_stock)) : undefined, sub: data && data.low_stock_parts > 0 ? `${data.low_stock_parts} below threshold` : undefined },
+    { to: "/raw-materials", icon: Package, iconBg: "bg-primary/10 text-primary", label: "RM Batches", value: data ? fmtNum(data.active_raw_batches) : undefined, sub: data && data.low_stock_raw > 0 ? `${data.low_stock_raw} running low` : undefined },
+    { to: "/alerts", icon: Bell, iconBg: "bg-primary/10 text-primary", label: "Unread Alerts", value: data ? fmtNum(data.unread_alerts) : undefined },
+    { to: "/reports", icon: AlertTriangle, iconBg: "bg-primary/10 text-primary", label: "Today's Wastage", value: data ? fmtKg(Number(data.todays_wastage_kg), 2) : undefined, sub: data && Number(data.todays_actual_kg) > 0 ? `${((Number(data.todays_wastage_kg) / Number(data.todays_actual_kg)) * 100).toFixed(1)}% of actual` : undefined },
   ];
-
 
   return (
     <div>
       <PageHeader title="Dashboard" subtitle={fmtDate(new Date())} />
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {cards.map((c) => (
           <Link key={c.label} to={c.to as any} className="group">
             <Card className="transition-all hover:shadow-md hover:-translate-y-0.5 cursor-pointer h-full">
