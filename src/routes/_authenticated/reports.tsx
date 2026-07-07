@@ -82,18 +82,16 @@ function WastageReport() {
         <Kpi label="Avg wastage %" value={`${avgPct.toFixed(2)}%`} />
         <Kpi label="Log entries" value={fmtNum(data?.length ?? 0)} />
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <ChartCard title="Wastage by reason (kg)">
-          <Suspense fallback={<ChartFallback />}>
-            <WastageChartsWastageOnly byReason={byReason} byDate={byDate} kind="reason" />
+      <Card>
+        <CardHeader><CardTitle className="text-base flex items-center gap-2"><BarChart3 className="h-4 w-4" /> Wastage charts</CardTitle></CardHeader>
+        <CardContent>
+          <Suspense fallback={<div className="grid grid-cols-1 lg:grid-cols-2 gap-4"><ChartFallback /><ChartFallback /></div>}>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <WastageCharts byReason={byReason} byDate={byDate} />
+            </div>
           </Suspense>
-        </ChartCard>
-        <ChartCard title="Wastage trend (kg over time)">
-          <Suspense fallback={<ChartFallback />}>
-            <WastageChartsWastageOnly byReason={byReason} byDate={byDate} kind="trend" />
-          </Suspense>
-        </ChartCard>
-      </div>
+        </CardContent>
+      </Card>
       <Card>
         <CardContent className="p-0">
           <Table>
