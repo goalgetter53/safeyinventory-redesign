@@ -59,7 +59,7 @@ function Dashboard() {
       <PageHeader title="Dashboard" subtitle={fmtDate(new Date())} />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {cards.map((c) => (
-          <Link key={c.label} to={c.to} className="group">
+          <Link key={c.label} to={c.to as any} className="group">
             <Card className="transition-all hover:shadow-md hover:-translate-y-0.5 cursor-pointer h-full">
               <CardContent className="pt-6">
                 <div className={cn("inline-flex rounded-md p-2 mb-4", c.iconBg)}>
