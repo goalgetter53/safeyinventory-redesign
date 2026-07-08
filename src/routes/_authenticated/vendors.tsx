@@ -17,14 +17,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MATERIAL_TYPES, fmtDate } from "@/lib/inventory/format";
+import { fmtDate } from "@/lib/inventory/format";
 import { audit } from "@/lib/inventory/audit";
 
 export const Route = createFileRoute("/_authenticated/vendors")({
@@ -95,6 +94,8 @@ function VendorsPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["vendors"] }),
   });
 
+  const knownMaterials = Array.from(new Set(((vendors ?? []) as any[]).flatMap((v) => v.materials_supplied ?? []))).sort() as string[];
+
   const filtered = (vendors ?? []).filter((v) => {
     const term = debouncedQ.toLowerCase();
     const matchQ = !term || [v.name, v.phone, ...(v.materials_supplied ?? [])].some((f) => String(f).toLowerCase().includes(term));
@@ -130,7 +131,7 @@ function VendorsPage() {
           <SelectTrigger className="sm:w-48 h-8 text-[13px]"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All materials</SelectItem>
-            {MATERIAL_TYPES.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+            {knownMaterials.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
           </SelectContent>
         </Select>
       </div>
@@ -195,6 +196,12 @@ function VendorsPage() {
 
 function VendorForm({ open, onOpenChange, vendor }: { open: boolean; onOpenChange: (o: boolean) => void; vendor: any | null }) {
   const qc = useQueryClient();
+  const { data: vendors } = useQuery({
+    queryKey: ["vendors", "for-materials"],
+    staleTime: 5 * 60_000,
+    queryFn: async () => (await supabase.from("vendors").select("materials_supplied").order("name")).data ?? [],
+  });
+  const knownMaterials = Array.from(new Set(((vendors ?? []) as any[]).flatMap((v) => v.materials_supplied ?? []))).sort() as string[];
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: { name: "", phone: "", address: "", materials_supplied: [], notes: "" },
@@ -203,6 +210,7 @@ function VendorForm({ open, onOpenChange, vendor }: { open: boolean; onOpenChang
       materials_supplied: vendor.materials_supplied ?? [], notes: vendor.notes ?? "",
     } : undefined,
   });
+  const [materialDraft, setMaterialDraft] = useState("");
 
   const save = useMutation({
     mutationFn: async (v: FormValues) => {
@@ -249,16 +257,45 @@ function VendorForm({ open, onOpenChange, vendor }: { open: boolean; onOpenChang
           </div>
           <div>
             <Label className="label-caps">Materials supplied *</Label>
-            <div className="grid grid-cols-2 gap-2 mt-2">
-              {MATERIAL_TYPES.map((m) => (
-                <label key={m} className="flex items-center gap-2 border rounded-md p-2 cursor-pointer hover:bg-accent">
-                  <Checkbox
-                    checked={mats.includes(m)}
-                    onCheckedChange={(c) => form.setValue("materials_supplied", c ? [...mats, m] : mats.filter((x) => x !== m), { shouldValidate: true })}
-                  />
-                  <MaterialBadge material={m} />
-                </label>
+            <div className="mt-1 flex flex-wrap gap-1.5 min-h-[34px] border rounded-md p-2 bg-background">
+              {mats.map((m) => (
+                <span key={m} className="inline-flex items-center gap-1 bg-secondary text-secondary-foreground rounded px-2 py-0.5 text-[12px]">
+                  {m}
+                  <button
+                    type="button"
+                    onClick={() => form.setValue("materials_supplied", mats.filter((x) => x !== m), { shouldValidate: true })}
+                    className="hover:text-destructive"
+                    aria-label={`Remove ${m}`}
+                  >×</button>
+                </span>
               ))}
+              <input
+                value={materialDraft}
+                onChange={(e) => setMaterialDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if ((e.key === "Enter" || e.key === ",") && materialDraft.trim()) {
+                    e.preventDefault();
+                    const v = materialDraft.trim();
+                    if (!mats.includes(v)) form.setValue("materials_supplied", [...mats, v], { shouldValidate: true });
+                    setMaterialDraft("");
+                  } else if (e.key === "Backspace" && !materialDraft && mats.length) {
+                    form.setValue("materials_supplied", mats.slice(0, -1), { shouldValidate: true });
+                  }
+                }}
+                onBlur={() => {
+                  if (materialDraft.trim()) {
+                    const v = materialDraft.trim();
+                    if (!mats.includes(v)) form.setValue("materials_supplied", [...mats, v], { shouldValidate: true });
+                    setMaterialDraft("");
+                  }
+                }}
+                placeholder={mats.length ? "Add another…" : "Type a material and press Enter"}
+                list="known-materials-vendor"
+                className="flex-1 min-w-[120px] outline-none bg-transparent text-[13px]"
+              />
+              <datalist id="known-materials-vendor">
+                {knownMaterials.map((m) => <option key={m} value={m} />)}
+              </datalist>
             </div>
             {form.formState.errors.materials_supplied && <p className="text-xs text-destructive mt-1">{form.formState.errors.materials_supplied.message}</p>}
           </div>
