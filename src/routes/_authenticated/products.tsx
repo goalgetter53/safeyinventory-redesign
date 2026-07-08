@@ -77,7 +77,7 @@ function ProductsPage() {
                     {(p.product_bom ?? []).length} parts · {totalParts} pieces per unit
                   </div>
                   <div className="mt-4 flex flex-wrap gap-2">
-                    <Button asChild size="sm"><Link to="/products/$id/bom" params={{ id: p.id }}><ListTree className="h-4 w-4" /> Edit BOM</Link></Button>
+                    <Button asChild size="sm"><Link to="/products-bom/$id" params={{ id: p.id }}><ListTree className="h-4 w-4" /> Edit BOM</Link></Button>
                     <Button size="sm" variant="outline" onClick={() => setEditing(p)}>Edit</Button>
                   </div>
                 </CardContent>

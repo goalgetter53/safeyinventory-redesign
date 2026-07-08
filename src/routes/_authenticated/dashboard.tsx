@@ -31,11 +31,32 @@ type Kpis = {
   unread_alerts: number;
 };
 
+const DEMO_KPIS: Kpis = {
+  total_raw_stock_kg: 4820.5,
+  active_raw_batches: 14,
+  material_types: 4,
+  total_finished_goods: 1840,
+  total_production_batches: 327,
+  todays_batches: 6,
+  todays_units: 412,
+  todays_wastage_kg: 8.4,
+  todays_actual_kg: 96.2,
+  vendors_count: 9,
+  active_products: 12,
+  parts_stock: 5840,
+  low_stock_parts: 2,
+  low_stock_raw: 1,
+  unread_alerts: 3,
+};
+
 function Dashboard() {
   const { data, isLoading } = useQuery({
     queryKey: ["dashboard-kpis"],
     staleTime: 60_000,
     queryFn: async (): Promise<Kpis> => {
+      if (typeof window !== "undefined" && (window as any).__TRACE_DEMO) {
+        return DEMO_KPIS;
+      }
       const { data, error } = await supabase.rpc("get_dashboard_kpis");
       if (error) throw error;
       return data as unknown as Kpis;

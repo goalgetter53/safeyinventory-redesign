@@ -74,25 +74,23 @@ function PartsPage() {
                   const pct = p.low_stock_threshold > 0 ? Math.min(100, (Number(p.current_stock) / Number(p.low_stock_threshold)) * 100) : 100;
                   const color = pct > 80 ? "bg-success" : pct > 40 ? "bg-warning" : "bg-destructive";
                   const isOpen = expanded === p.id;
-                  return (
-                    <>
-                      <TableRow key={p.id} className="hover:bg-muted/30 cursor-pointer" onClick={() => setExpanded(isOpen ? null : p.id)}>
-                        <TableCell>{isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}</TableCell>
-                        <TableCell className="font-medium">{p.part_name}</TableCell>
-                        <TableCell><MaterialBadge material={p.material_type} /></TableCell>
-                        <TableCell>{fmtKg(p.consumption_per_unit_kg, 4)}</TableCell>
-                        <TableCell>
-                          <div className="text-xs mb-1">{fmtNum(p.current_stock)} / {fmtNum(p.low_stock_threshold)}</div>
-                          <div className="h-1.5 rounded-full bg-muted overflow-hidden"><div className={`h-full ${color}`} style={{ width: `${Math.max(3, pct)}%` }} /></div>
-                        </TableCell>
-                        <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                          <Button variant="ghost" size="sm" onClick={() => setProduce(p)}><Factory className="h-4 w-4" /> Produce</Button>
-                          <Button variant="ghost" size="icon" onClick={() => setEditing(p)}><Pencil className="h-4 w-4" /></Button>
-                        </TableCell>
-                      </TableRow>
-                      {isOpen && <PartBatchesRow partId={p.id} />}
-                    </>
-                  );
+                  return [
+                    <TableRow key={p.id} className="hover:bg-muted/30 cursor-pointer" onClick={() => setExpanded(isOpen ? null : p.id)}>
+                      <TableCell>{isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}</TableCell>
+                      <TableCell className="font-medium">{p.part_name}</TableCell>
+                      <TableCell><MaterialBadge material={p.material_type} /></TableCell>
+                      <TableCell>{fmtKg(p.consumption_per_unit_kg, 4)}</TableCell>
+                      <TableCell>
+                        <div className="text-xs mb-1">{fmtNum(p.current_stock)} / {fmtNum(p.low_stock_threshold)}</div>
+                        <div className="h-1.5 rounded-full bg-muted overflow-hidden"><div className={`h-full ${color}`} style={{ width: `${Math.max(3, pct)}%` }} /></div>
+                      </TableCell>
+                      <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                        <Button variant="ghost" size="sm" onClick={() => setProduce(p)}><Factory className="h-4 w-4" /> Produce</Button>
+                        <Button variant="ghost" size="icon" onClick={() => setEditing(p)}><Pencil className="h-4 w-4" /></Button>
+                      </TableCell>
+                    </TableRow>,
+                    isOpen ? <PartBatchesRow key={`${p.id}-batches`} partId={p.id} /> : null,
+                  ];
                 })}
               </TableBody>
             </Table>

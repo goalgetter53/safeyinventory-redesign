@@ -13,7 +13,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { fmtKg } from "@/lib/inventory/format";
 import { audit } from "@/lib/inventory/audit";
 
-export const Route = createFileRoute("/_authenticated/products/$id/bom")({
+export const Route = createFileRoute("/_authenticated/products-bom/$id")({
   component: BomEditor,
 });
 

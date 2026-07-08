@@ -14,18 +14,20 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedVendorsRouteImport } from './routes/_authenticated/vendors'
 import { Route as AuthenticatedTraceabilityRouteImport } from './routes/_authenticated/traceability'
+import { Route as AuthenticatedStockRouteImport } from './routes/_authenticated/stock'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
 import { Route as AuthenticatedRawMaterialsRouteImport } from './routes/_authenticated/raw-materials'
 import { Route as AuthenticatedProductsRouteImport } from './routes/_authenticated/products'
 import { Route as AuthenticatedProductionPlanningRouteImport } from './routes/_authenticated/production-planning'
+import { Route as AuthenticatedProductionNewRouteImport } from './routes/_authenticated/production-new'
 import { Route as AuthenticatedProductionRouteImport } from './routes/_authenticated/production'
 import { Route as AuthenticatedPartsRouteImport } from './routes/_authenticated/parts'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedBatchRecallRouteImport } from './routes/_authenticated/batch-recall'
 import { Route as AuthenticatedAlertsRouteImport } from './routes/_authenticated/alerts'
-import { Route as AuthenticatedProductionNewRouteImport } from './routes/_authenticated/production.new'
-import { Route as AuthenticatedProductsIdBomRouteImport } from './routes/_authenticated/products.$id.bom'
+import { Route as AuthenticatedProductsBomIdRouteImport } from './routes/_authenticated/products-bom.$id'
+import { Route as AuthenticatedStockHistoryTypeIdRouteImport } from './routes/_authenticated/stock-history.$type.$id'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -52,6 +54,11 @@ const AuthenticatedTraceabilityRoute =
     path: '/traceability',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedStockRoute = AuthenticatedStockRouteImport.update({
+  id: '/stock',
+  path: '/stock',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -77,6 +84,12 @@ const AuthenticatedProductionPlanningRoute =
   AuthenticatedProductionPlanningRouteImport.update({
     id: '/production-planning',
     path: '/production-planning',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedProductionNewRoute =
+  AuthenticatedProductionNewRouteImport.update({
+    id: '/production-new',
+    path: '/production-new',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedProductionRoute = AuthenticatedProductionRouteImport.update({
@@ -105,17 +118,17 @@ const AuthenticatedAlertsRoute = AuthenticatedAlertsRouteImport.update({
   path: '/alerts',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedProductionNewRoute =
-  AuthenticatedProductionNewRouteImport.update({
-    id: '/new',
-    path: '/new',
-    getParentRoute: () => AuthenticatedProductionRoute,
+const AuthenticatedProductsBomIdRoute =
+  AuthenticatedProductsBomIdRouteImport.update({
+    id: '/products-bom/$id',
+    path: '/products-bom/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedProductsIdBomRoute =
-  AuthenticatedProductsIdBomRouteImport.update({
-    id: '/$id/bom',
-    path: '/$id/bom',
-    getParentRoute: () => AuthenticatedProductsRoute,
+const AuthenticatedStockHistoryTypeIdRoute =
+  AuthenticatedStockHistoryTypeIdRouteImport.update({
+    id: '/stock-history/$type/$id',
+    path: '/stock-history/$type/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -125,16 +138,18 @@ export interface FileRoutesByFullPath {
   '/batch-recall': typeof AuthenticatedBatchRecallRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/parts': typeof AuthenticatedPartsRoute
-  '/production': typeof AuthenticatedProductionRouteWithChildren
+  '/production': typeof AuthenticatedProductionRoute
+  '/production-new': typeof AuthenticatedProductionNewRoute
   '/production-planning': typeof AuthenticatedProductionPlanningRoute
-  '/products': typeof AuthenticatedProductsRouteWithChildren
+  '/products': typeof AuthenticatedProductsRoute
   '/raw-materials': typeof AuthenticatedRawMaterialsRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/stock': typeof AuthenticatedStockRoute
   '/traceability': typeof AuthenticatedTraceabilityRoute
   '/vendors': typeof AuthenticatedVendorsRoute
-  '/production/new': typeof AuthenticatedProductionNewRoute
-  '/products/$id/bom': typeof AuthenticatedProductsIdBomRoute
+  '/products-bom/$id': typeof AuthenticatedProductsBomIdRoute
+  '/stock-history/$type/$id': typeof AuthenticatedStockHistoryTypeIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -143,16 +158,18 @@ export interface FileRoutesByTo {
   '/batch-recall': typeof AuthenticatedBatchRecallRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/parts': typeof AuthenticatedPartsRoute
-  '/production': typeof AuthenticatedProductionRouteWithChildren
+  '/production': typeof AuthenticatedProductionRoute
+  '/production-new': typeof AuthenticatedProductionNewRoute
   '/production-planning': typeof AuthenticatedProductionPlanningRoute
-  '/products': typeof AuthenticatedProductsRouteWithChildren
+  '/products': typeof AuthenticatedProductsRoute
   '/raw-materials': typeof AuthenticatedRawMaterialsRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/stock': typeof AuthenticatedStockRoute
   '/traceability': typeof AuthenticatedTraceabilityRoute
   '/vendors': typeof AuthenticatedVendorsRoute
-  '/production/new': typeof AuthenticatedProductionNewRoute
-  '/products/$id/bom': typeof AuthenticatedProductsIdBomRoute
+  '/products-bom/$id': typeof AuthenticatedProductsBomIdRoute
+  '/stock-history/$type/$id': typeof AuthenticatedStockHistoryTypeIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -163,16 +180,18 @@ export interface FileRoutesById {
   '/_authenticated/batch-recall': typeof AuthenticatedBatchRecallRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/parts': typeof AuthenticatedPartsRoute
-  '/_authenticated/production': typeof AuthenticatedProductionRouteWithChildren
+  '/_authenticated/production': typeof AuthenticatedProductionRoute
+  '/_authenticated/production-new': typeof AuthenticatedProductionNewRoute
   '/_authenticated/production-planning': typeof AuthenticatedProductionPlanningRoute
-  '/_authenticated/products': typeof AuthenticatedProductsRouteWithChildren
+  '/_authenticated/products': typeof AuthenticatedProductsRoute
   '/_authenticated/raw-materials': typeof AuthenticatedRawMaterialsRoute
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/stock': typeof AuthenticatedStockRoute
   '/_authenticated/traceability': typeof AuthenticatedTraceabilityRoute
   '/_authenticated/vendors': typeof AuthenticatedVendorsRoute
-  '/_authenticated/production/new': typeof AuthenticatedProductionNewRoute
-  '/_authenticated/products/$id/bom': typeof AuthenticatedProductsIdBomRoute
+  '/_authenticated/products-bom/$id': typeof AuthenticatedProductsBomIdRoute
+  '/_authenticated/stock-history/$type/$id': typeof AuthenticatedStockHistoryTypeIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -184,15 +203,17 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/parts'
     | '/production'
+    | '/production-new'
     | '/production-planning'
     | '/products'
     | '/raw-materials'
     | '/reports'
     | '/settings'
+    | '/stock'
     | '/traceability'
     | '/vendors'
-    | '/production/new'
-    | '/products/$id/bom'
+    | '/products-bom/$id'
+    | '/stock-history/$type/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -202,15 +223,17 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/parts'
     | '/production'
+    | '/production-new'
     | '/production-planning'
     | '/products'
     | '/raw-materials'
     | '/reports'
     | '/settings'
+    | '/stock'
     | '/traceability'
     | '/vendors'
-    | '/production/new'
-    | '/products/$id/bom'
+    | '/products-bom/$id'
+    | '/stock-history/$type/$id'
   id:
     | '__root__'
     | '/'
@@ -221,15 +244,17 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/parts'
     | '/_authenticated/production'
+    | '/_authenticated/production-new'
     | '/_authenticated/production-planning'
     | '/_authenticated/products'
     | '/_authenticated/raw-materials'
     | '/_authenticated/reports'
     | '/_authenticated/settings'
+    | '/_authenticated/stock'
     | '/_authenticated/traceability'
     | '/_authenticated/vendors'
-    | '/_authenticated/production/new'
-    | '/_authenticated/products/$id/bom'
+    | '/_authenticated/products-bom/$id'
+    | '/_authenticated/stock-history/$type/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -275,6 +300,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTraceabilityRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/stock': {
+      id: '/_authenticated/stock'
+      path: '/stock'
+      fullPath: '/stock'
+      preLoaderRoute: typeof AuthenticatedStockRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/settings': {
       id: '/_authenticated/settings'
       path: '/settings'
@@ -308,6 +340,13 @@ declare module '@tanstack/react-router' {
       path: '/production-planning'
       fullPath: '/production-planning'
       preLoaderRoute: typeof AuthenticatedProductionPlanningRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/production-new': {
+      id: '/_authenticated/production-new'
+      path: '/production-new'
+      fullPath: '/production-new'
+      preLoaderRoute: typeof AuthenticatedProductionNewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/production': {
@@ -345,63 +384,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAlertsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/production/new': {
-      id: '/_authenticated/production/new'
-      path: '/new'
-      fullPath: '/production/new'
-      preLoaderRoute: typeof AuthenticatedProductionNewRouteImport
-      parentRoute: typeof AuthenticatedProductionRoute
+    '/_authenticated/products-bom/$id': {
+      id: '/_authenticated/products-bom/$id'
+      path: '/products-bom/$id'
+      fullPath: '/products-bom/$id'
+      preLoaderRoute: typeof AuthenticatedProductsBomIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/products/$id/bom': {
-      id: '/_authenticated/products/$id/bom'
-      path: '/$id/bom'
-      fullPath: '/products/$id/bom'
-      preLoaderRoute: typeof AuthenticatedProductsIdBomRouteImport
-      parentRoute: typeof AuthenticatedProductsRoute
+    '/_authenticated/stock-history/$type/$id': {
+      id: '/_authenticated/stock-history/$type/$id'
+      path: '/stock-history/$type/$id'
+      fullPath: '/stock-history/$type/$id'
+      preLoaderRoute: typeof AuthenticatedStockHistoryTypeIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
   }
 }
-
-interface AuthenticatedProductionRouteChildren {
-  AuthenticatedProductionNewRoute: typeof AuthenticatedProductionNewRoute
-}
-
-const AuthenticatedProductionRouteChildren: AuthenticatedProductionRouteChildren =
-  {
-    AuthenticatedProductionNewRoute: AuthenticatedProductionNewRoute,
-  }
-
-const AuthenticatedProductionRouteWithChildren =
-  AuthenticatedProductionRoute._addFileChildren(
-    AuthenticatedProductionRouteChildren,
-  )
-
-interface AuthenticatedProductsRouteChildren {
-  AuthenticatedProductsIdBomRoute: typeof AuthenticatedProductsIdBomRoute
-}
-
-const AuthenticatedProductsRouteChildren: AuthenticatedProductsRouteChildren = {
-  AuthenticatedProductsIdBomRoute: AuthenticatedProductsIdBomRoute,
-}
-
-const AuthenticatedProductsRouteWithChildren =
-  AuthenticatedProductsRoute._addFileChildren(
-    AuthenticatedProductsRouteChildren,
-  )
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAlertsRoute: typeof AuthenticatedAlertsRoute
   AuthenticatedBatchRecallRoute: typeof AuthenticatedBatchRecallRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedPartsRoute: typeof AuthenticatedPartsRoute
-  AuthenticatedProductionRoute: typeof AuthenticatedProductionRouteWithChildren
+  AuthenticatedProductionRoute: typeof AuthenticatedProductionRoute
+  AuthenticatedProductionNewRoute: typeof AuthenticatedProductionNewRoute
   AuthenticatedProductionPlanningRoute: typeof AuthenticatedProductionPlanningRoute
-  AuthenticatedProductsRoute: typeof AuthenticatedProductsRouteWithChildren
+  AuthenticatedProductsRoute: typeof AuthenticatedProductsRoute
   AuthenticatedRawMaterialsRoute: typeof AuthenticatedRawMaterialsRoute
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedStockRoute: typeof AuthenticatedStockRoute
   AuthenticatedTraceabilityRoute: typeof AuthenticatedTraceabilityRoute
   AuthenticatedVendorsRoute: typeof AuthenticatedVendorsRoute
+  AuthenticatedProductsBomIdRoute: typeof AuthenticatedProductsBomIdRoute
+  AuthenticatedStockHistoryTypeIdRoute: typeof AuthenticatedStockHistoryTypeIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -409,14 +425,18 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedBatchRecallRoute: AuthenticatedBatchRecallRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedPartsRoute: AuthenticatedPartsRoute,
-  AuthenticatedProductionRoute: AuthenticatedProductionRouteWithChildren,
+  AuthenticatedProductionRoute: AuthenticatedProductionRoute,
+  AuthenticatedProductionNewRoute: AuthenticatedProductionNewRoute,
   AuthenticatedProductionPlanningRoute: AuthenticatedProductionPlanningRoute,
-  AuthenticatedProductsRoute: AuthenticatedProductsRouteWithChildren,
+  AuthenticatedProductsRoute: AuthenticatedProductsRoute,
   AuthenticatedRawMaterialsRoute: AuthenticatedRawMaterialsRoute,
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedStockRoute: AuthenticatedStockRoute,
   AuthenticatedTraceabilityRoute: AuthenticatedTraceabilityRoute,
   AuthenticatedVendorsRoute: AuthenticatedVendorsRoute,
+  AuthenticatedProductsBomIdRoute: AuthenticatedProductsBomIdRoute,
+  AuthenticatedStockHistoryTypeIdRoute: AuthenticatedStockHistoryTypeIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

@@ -2,7 +2,7 @@ import { createFileRoute, Outlet, redirect, Link, useRouterState, useNavigate } 
 import { useEffect, useState } from "react";
 import {
   LayoutDashboard, Users, Package, Puzzle, Boxes, Factory, CalendarClock,
-  GitBranch, BarChart3, Bell, ShieldAlert, Settings, LogOut, Menu, Search, X,
+  GitBranch, BarChart3, Bell, ShieldAlert, Settings, LogOut, Menu, Search, X, Warehouse,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -20,6 +20,9 @@ import { useDebouncedValue } from "@/hooks/use-debounced-value";
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
   beforeLoad: async () => {
+    if (typeof window !== "undefined" && (window as any).__TRACE_DEMO) {
+      return { session: { user: { id: "demo", email: "demo@trace.os" } } } as any;
+    }
     const { data, error } = await supabase.auth.getSession();
     if (error || !data.session) throw redirect({ to: "/auth" });
     return { session: data.session };
@@ -37,6 +40,7 @@ const NAV: NavItem[] = [
   { to: "/products",            label: "Products",           icon: Boxes,           group: "ops" },
   { to: "/production",          label: "Production",         icon: Factory,         group: "ops" },
   { to: "/production-planning", label: "Production planning",icon: CalendarClock,   group: "insight" },
+  { to: "/stock",               label: "Stock",              icon: Warehouse,       group: "insight" },
   { to: "/traceability",        label: "Traceability",       icon: GitBranch,       group: "insight" },
   { to: "/reports",             label: "Reports",            icon: BarChart3,       group: "insight" },
   { to: "/alerts",              label: "Alerts",             icon: Bell,            group: "insight" },
@@ -157,6 +161,7 @@ function useUnreadAlertsCount() {
   const { data } = useQuery({
     queryKey: ["alerts", "unread-count"],
     queryFn: async () => {
+      if (typeof window !== "undefined" && (window as any).__TRACE_DEMO) return 3;
       const { count, error } = await supabase.from("alerts").select("*", { count: "exact", head: true }).eq("is_read", false);
       if (error) throw error;
       return count ?? 0;

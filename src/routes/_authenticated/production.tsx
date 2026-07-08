@@ -28,7 +28,7 @@ function ProductionPage() {
         actions={
           <>
             <Button asChild variant="outline"><Link to="/production-planning"><CalendarClock className="h-4 w-4" /> Plan Production</Link></Button>
-            <Button asChild><Link to="/production/new"><Plus className="h-4 w-4" /> Start Production</Link></Button>
+            <Button asChild><Link to="/production-new"><Plus className="h-4 w-4" /> Start Production</Link></Button>
           </>
         }
       />
@@ -37,7 +37,7 @@ function ProductionPage() {
         <CardContent className="p-0">
           {isLoading ? <div className="p-8 text-sm text-muted-foreground text-center">Loading…</div> :
             (data ?? []).length === 0 ? (
-              <EmptyState icon={Factory} title="No production runs yet" description="Start your first production batch." action={<Button asChild><Link to="/production/new"><Plus className="h-4 w-4" /> Start Production</Link></Button>} />
+              <EmptyState icon={Factory} title="No production runs yet" description="Start your first production batch." action={<Button asChild><Link to="/production-new"><Plus className="h-4 w-4" /> Start Production</Link></Button>} />
             ) : (
               <Table>
                 <TableHeader className="bg-muted/50">

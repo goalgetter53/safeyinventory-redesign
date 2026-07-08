@@ -8,6 +8,12 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (typeof window !== "undefined" && (window as any).__TRACE_DEMO) {
+      setSession({ user: { id: "demo", email: "demo@trace.os" } } as any);
+      setUser({ id: "demo", email: "demo@trace.os" } as any);
+      setLoading(false);
+      return;
+    }
     let mounted = true;
     supabase.auth.getSession().then(({ data }) => {
       if (!mounted) return;
