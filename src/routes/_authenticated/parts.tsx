@@ -21,7 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MATERIAL_TYPES, WASTAGE_REASONS, fmtDate, fmtKg, fmtNum, wastageReasonLabel } from "@/lib/inventory/format";
+import { WASTAGE_REASONS, fmtDate, fmtKg, fmtNum, wastageReasonLabel } from "@/lib/inventory/format";
 import { PartProduceDialog } from "@/components/inventory/part-produce-dialog";
 import { audit } from "@/lib/inventory/audit";
 
@@ -31,7 +31,7 @@ export const Route = createFileRoute("/_authenticated/parts")({
 
 const schema = z.object({
   part_name: z.string().trim().min(1).max(100),
-  material_type: z.enum(["PC", "POM", "PP", "TPE"]),
+  material_type: z.string().min(1, "Required").max(40),
   consumption_per_unit_kg: z.coerce.number().positive("Must be > 0"),
   low_stock_threshold: z.coerce.number().min(0),
   notes: z.string().optional().or(z.literal("")),
@@ -51,6 +51,7 @@ function PartsPage() {
   });
 
   const totalStock = (parts ?? []).reduce((s, p: any) => s + Number(p.current_stock), 0);
+  const knownMaterials = Array.from(new Set((parts ?? []).map((p: any) => p.material_type))).sort() as string[];
 
   return (
     <div>
@@ -138,9 +139,15 @@ function PartBatchesRow({ partId }: { partId: string }) {
 
 function PartForm({ open, onOpenChange, part }: { open: boolean; onOpenChange: (o: boolean) => void; part: any | null }) {
   const qc = useQueryClient();
+  const { data: allParts } = useQuery({
+    queryKey: ["parts"],
+    staleTime: 5 * 60_000,
+    queryFn: async () => (await supabase.from("parts").select("material_type").order("part_name")).data ?? [],
+  });
+  const knownMaterials = Array.from(new Set((allParts ?? []).map((p: any) => p.material_type))).sort() as string[];
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { part_name: "", material_type: "PP", consumption_per_unit_kg: 0.01, low_stock_threshold: 100, notes: "" },
+    defaultValues: { part_name: "", material_type: "", consumption_per_unit_kg: 0.01, low_stock_threshold: 100, notes: "" },
     values: part ? {
       part_name: part.part_name, material_type: part.material_type,
       consumption_per_unit_kg: Number(part.consumption_per_unit_kg),
@@ -176,10 +183,16 @@ function PartForm({ open, onOpenChange, part }: { open: boolean; onOpenChange: (
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label className="label-caps">Material *</Label>
-              <Select value={form.watch("material_type")} onValueChange={(v) => form.setValue("material_type", v as any)}>
-                <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
-                <SelectContent>{MATERIAL_TYPES.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
-              </Select>
+              <Input
+                {...form.register("material_type")}
+                placeholder="e.g. Polypropylene, Nylon-6, ABS"
+                list="known-materials-part"
+                className="mt-1"
+              />
+              <datalist id="known-materials-part">
+                {knownMaterials.map((m) => <option key={m} value={m} />)}
+              </datalist>
+              {form.formState.errors.material_type && <p className="text-xs text-destructive mt-1">{form.formState.errors.material_type.message}</p>}
             </div>
             <div>
               <Label className="label-caps">Consumption/unit (kg) *</Label>

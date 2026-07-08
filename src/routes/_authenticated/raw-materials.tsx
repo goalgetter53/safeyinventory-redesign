@@ -24,7 +24,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { MATERIAL_TYPES, fmtCurrency, fmtDate, fmtKg, wastageReasonLabel } from "@/lib/inventory/format";
+import { fmtCurrency, fmtDate, fmtKg, wastageReasonLabel } from "@/lib/inventory/format";
 import { audit } from "@/lib/inventory/audit";
 
 export const Route = createFileRoute("/_authenticated/raw-materials")({
@@ -32,7 +32,7 @@ export const Route = createFileRoute("/_authenticated/raw-materials")({
 });
 
 const schema = z.object({
-  material_type: z.enum(["PC", "POM", "PP", "TPE"]),
+  material_type: z.string().min(1, "Required").max(40),
   vendor_id: z.string().uuid("Pick a vendor"),
   initial_quantity_kg: z.coerce.number().positive("Must be > 0"),
   rate_per_kg: z.coerce.number().min(0, "Must be ≥ 0"),
@@ -87,6 +87,7 @@ function RawMaterialsPage() {
   });
 
   const activeTotal = filtered.reduce((s, r: any) => s + Number(r.remaining_quantity_kg), 0);
+  const knownMaterials = Array.from(new Set((materials ?? []).map((m: any) => m.material_type))).sort() as string[];
   const valueTotal = filtered.reduce((s, r: any) => s + Number(r.remaining_quantity_kg) * Number(r.rate_per_kg), 0);
 
   return (
@@ -103,7 +104,7 @@ function RawMaterialsPage() {
           <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All materials</SelectItem>
-            {MATERIAL_TYPES.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+            {knownMaterials.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
           </SelectContent>
         </Select>
         <Select value={filterVendor} onValueChange={setFilterVendor}>
@@ -179,12 +180,18 @@ function RawMaterialsPage() {
 
 function AddRawMaterialDialog({ open, onOpenChange, vendors }: { open: boolean; onOpenChange: (o: boolean) => void; vendors: any[] }) {
   const qc = useQueryClient();
+  const { data: existing } = useQuery({
+    queryKey: ["raw_materials", "list"],
+    staleTime: 5 * 60_000,
+    queryFn: async () => (await supabase.from("raw_materials").select("material_type").order("purchase_date", { ascending: false })).data ?? [],
+  });
+  const knownMaterials = Array.from(new Set((existing ?? []).map((r: any) => r.material_type))).sort() as string[];
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { material_type: "PP", vendor_id: "", initial_quantity_kg: 0, rate_per_kg: 0, purchase_date: new Date().toISOString().slice(0, 10), notes: "" },
+    defaultValues: { material_type: "", vendor_id: "", initial_quantity_kg: 0, rate_per_kg: 0, purchase_date: new Date().toISOString().slice(0, 10), notes: "" },
   });
   const mt = form.watch("material_type");
-  const availableVendors = vendors.filter((v) => (v.materials_supplied ?? []).includes(mt));
+  const availableVendors = vendors;
 
   const save = useMutation({
     mutationFn: async (v: FormValues) => {
@@ -213,18 +220,23 @@ function AddRawMaterialDialog({ open, onOpenChange, vendors }: { open: boolean; 
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label className="label-caps">Material *</Label>
-              <Select value={mt} onValueChange={(v) => { form.setValue("material_type", v as any); form.setValue("vendor_id", ""); }}>
-                <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
-                <SelectContent>{MATERIAL_TYPES.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
-              </Select>
+              <Input
+                {...form.register("material_type")}
+                placeholder="e.g. Polypropylene, Nylon-6, ABS"
+                list="known-materials"
+                className="mt-1"
+              />
+              <datalist id="known-materials">
+                {knownMaterials.map((m) => <option key={m} value={m} />)}
+              </datalist>
+              {form.formState.errors.material_type && <p className="text-xs text-destructive mt-1">{form.formState.errors.material_type.message}</p>}
             </div>
             <div>
               <Label className="label-caps">Vendor *</Label>
               <Select value={form.watch("vendor_id")} onValueChange={(v) => form.setValue("vendor_id", v, { shouldValidate: true })}>
                 <SelectTrigger className="mt-1"><SelectValue placeholder="Choose vendor" /></SelectTrigger>
                 <SelectContent>
-                  {availableVendors.length === 0 ? <div className="p-2 text-sm text-muted-foreground">No vendor supplies {mt}</div> :
-                    availableVendors.map((v) => <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>)}
+                  {availableVendors.map((v) => <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>)}
                 </SelectContent>
               </Select>
               {form.formState.errors.vendor_id && <p className="text-xs text-destructive mt-1">{form.formState.errors.vendor_id.message}</p>}
