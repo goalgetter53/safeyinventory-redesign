@@ -106,7 +106,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
           <Factory className="h-3.5 w-3.5" />
         </div>
         <div className="flex flex-col leading-none">
-          <span className="text-[13.5px] font-semibold tracking-[-0.005em]">Traceability</span>
+          <span className="text-[13.5px] font-semibold tracking-[-0.005em]">Safey</span>
           <span className="text-[10.5px] text-muted-foreground tracking-[0.04em] uppercase mt-0.5">v1.0</span>
         </div>
       </div>
