@@ -2,7 +2,7 @@ import { createFileRoute, Outlet, redirect, Link, useRouterState, useNavigate } 
 import { useEffect, useState } from "react";
 import {
   LayoutDashboard, Users, Package, Puzzle, Boxes, Factory, CalendarClock,
-  GitBranch, BarChart3, Bell, ShieldAlert, Settings, LogOut, Menu, Search, X, Warehouse,
+  GitBranch, BarChart3, Bell, ShieldAlert, Settings, LogOut, Menu, Search, X, Warehouse, Archive,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -41,6 +41,7 @@ const NAV: NavItem[] = [
   { to: "/production",          label: "Production",         icon: Factory,         group: "ops" },
   { to: "/production-planning", label: "Production planning",icon: CalendarClock,   group: "insight" },
   { to: "/stock",               label: "Stock",              icon: Warehouse,       group: "insight" },
+  { to: "/other-items",         label: "Other items",        icon: Archive,         group: "ops" },
   { to: "/traceability",        label: "Traceability",       icon: GitBranch,       group: "insight" },
   { to: "/reports",             label: "Reports",            icon: BarChart3,       group: "insight" },
   { to: "/alerts",              label: "Alerts",             icon: Bell,            group: "insight" },

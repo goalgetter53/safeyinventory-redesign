@@ -23,6 +23,7 @@ import { Route as AuthenticatedProductionPlanningRouteImport } from './routes/_a
 import { Route as AuthenticatedProductionNewRouteImport } from './routes/_authenticated/production-new'
 import { Route as AuthenticatedProductionRouteImport } from './routes/_authenticated/production'
 import { Route as AuthenticatedPartsRouteImport } from './routes/_authenticated/parts'
+import { Route as AuthenticatedOtherItemsRouteImport } from './routes/_authenticated/other-items'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedBatchRecallRouteImport } from './routes/_authenticated/batch-recall'
 import { Route as AuthenticatedAlertsRouteImport } from './routes/_authenticated/alerts'
@@ -102,6 +103,11 @@ const AuthenticatedPartsRoute = AuthenticatedPartsRouteImport.update({
   path: '/parts',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedOtherItemsRoute = AuthenticatedOtherItemsRouteImport.update({
+  id: '/other-items',
+  path: '/other-items',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -137,6 +143,7 @@ export interface FileRoutesByFullPath {
   '/alerts': typeof AuthenticatedAlertsRoute
   '/batch-recall': typeof AuthenticatedBatchRecallRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/other-items': typeof AuthenticatedOtherItemsRoute
   '/parts': typeof AuthenticatedPartsRoute
   '/production': typeof AuthenticatedProductionRoute
   '/production-new': typeof AuthenticatedProductionNewRoute
@@ -157,6 +164,7 @@ export interface FileRoutesByTo {
   '/alerts': typeof AuthenticatedAlertsRoute
   '/batch-recall': typeof AuthenticatedBatchRecallRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/other-items': typeof AuthenticatedOtherItemsRoute
   '/parts': typeof AuthenticatedPartsRoute
   '/production': typeof AuthenticatedProductionRoute
   '/production-new': typeof AuthenticatedProductionNewRoute
@@ -179,6 +187,7 @@ export interface FileRoutesById {
   '/_authenticated/alerts': typeof AuthenticatedAlertsRoute
   '/_authenticated/batch-recall': typeof AuthenticatedBatchRecallRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/other-items': typeof AuthenticatedOtherItemsRoute
   '/_authenticated/parts': typeof AuthenticatedPartsRoute
   '/_authenticated/production': typeof AuthenticatedProductionRoute
   '/_authenticated/production-new': typeof AuthenticatedProductionNewRoute
@@ -201,6 +210,7 @@ export interface FileRouteTypes {
     | '/alerts'
     | '/batch-recall'
     | '/dashboard'
+    | '/other-items'
     | '/parts'
     | '/production'
     | '/production-new'
@@ -221,6 +231,7 @@ export interface FileRouteTypes {
     | '/alerts'
     | '/batch-recall'
     | '/dashboard'
+    | '/other-items'
     | '/parts'
     | '/production'
     | '/production-new'
@@ -242,6 +253,7 @@ export interface FileRouteTypes {
     | '/_authenticated/alerts'
     | '/_authenticated/batch-recall'
     | '/_authenticated/dashboard'
+    | '/_authenticated/other-items'
     | '/_authenticated/parts'
     | '/_authenticated/production'
     | '/_authenticated/production-new'
@@ -363,6 +375,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPartsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/other-items': {
+      id: '/_authenticated/other-items'
+      path: '/other-items'
+      fullPath: '/other-items'
+      preLoaderRoute: typeof AuthenticatedOtherItemsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -405,6 +424,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAlertsRoute: typeof AuthenticatedAlertsRoute
   AuthenticatedBatchRecallRoute: typeof AuthenticatedBatchRecallRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedOtherItemsRoute: typeof AuthenticatedOtherItemsRoute
   AuthenticatedPartsRoute: typeof AuthenticatedPartsRoute
   AuthenticatedProductionRoute: typeof AuthenticatedProductionRoute
   AuthenticatedProductionNewRoute: typeof AuthenticatedProductionNewRoute
@@ -424,6 +444,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAlertsRoute: AuthenticatedAlertsRoute,
   AuthenticatedBatchRecallRoute: AuthenticatedBatchRecallRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedOtherItemsRoute: AuthenticatedOtherItemsRoute,
   AuthenticatedPartsRoute: AuthenticatedPartsRoute,
   AuthenticatedProductionRoute: AuthenticatedProductionRoute,
   AuthenticatedProductionNewRoute: AuthenticatedProductionNewRoute,

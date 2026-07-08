@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Search, Warehouse, Package, Puzzle, Boxes } from "lucide-react";
+import { Search, Warehouse, Package, Puzzle, Boxes, Archive } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader } from "@/components/inventory/page-header";
@@ -21,13 +21,15 @@ export const Route = createFileRoute("/_authenticated/stock")({
 type StockRow =
   | { type: "raw"; id: string; name: string; sub: string; material: string; stock_kg: number; low: boolean; blocked: boolean }
   | { type: "part"; id: string; name: string; sub: string; material: string; stock_units: number; threshold: number; low: boolean }
-  | { type: "product"; id: string; name: string; sub: string; material: string; stock_units: number; active: boolean };
+  | { type: "product"; id: string; name: string; sub: string; material: string; stock_units: number; active: boolean }
+  | { type: "other"; id: string; name: string; sub: string; material: string; stock_units: number; threshold: number; unit: string; low: boolean };
 
 const FILTERS = [
   { value: "all", label: "All" },
   { value: "raw", label: "Raw materials" },
   { value: "part", label: "Parts" },
   { value: "product", label: "Products" },
+  { value: "other", label: "Other" },
 ] as const;
 type FilterValue = (typeof FILTERS)[number]["value"];
 
@@ -50,7 +52,12 @@ function StockPage() {
     queryFn: async () => (await supabase.from("products").select("id, product_name, product_code, is_active").order("product_name")).data ?? [],
   });
 
-  const isLoading = l1 || l2 || l3;
+  const { data: others, isLoading: l4 } = useQuery({
+    queryKey: ["stock", "other"],
+    queryFn: async () => (await supabase.from("other_items").select("id, name, category, unit, current_stock, low_stock_threshold").order("category").order("name")).data ?? [],
+  });
+
+  const isLoading = l1 || l2 || l3 || l4;
 
   const rows = useMemo<StockRow[]>(() => {
     const rawRows: StockRow[] = (raws ?? []).map((r: any) => ({
@@ -84,8 +91,19 @@ function StockPage() {
       stock_units: 0,
       active: !!p.is_active,
     }));
-    return [...rawRows, ...partRows, ...productRows];
-  }, [raws, parts, products]);
+    const otherRows: StockRow[] = (others ?? []).map((o: any) => ({
+      type: "other",
+      id: o.id,
+      name: o.name,
+      sub: o.category,
+      material: o.category,
+      stock_units: Number(o.current_stock),
+      threshold: Number(o.low_stock_threshold),
+      unit: o.unit,
+      low: Number(o.current_stock) < Number(o.low_stock_threshold),
+    }));
+    return [...rawRows, ...partRows, ...productRows, ...otherRows];
+  }, [raws, parts, products, others]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -161,22 +179,25 @@ function StockPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((r) => (
+                {filtered.map((r) => {
+                  const linkTo = r.type === "other" ? "/other-items" : "/stock-history/$type/$id";
+                  const linkParams = r.type === "other" ? undefined : { type: r.type, id: r.id };
+                  return (
                   <TableRow
                     key={`${r.type}-${r.id}`}
                     className="cursor-pointer hover:bg-muted/40"
                   >
                     <TableCell>
                       <Link
-                        to="/stock-history/$type/$id"
-                        params={{ type: r.type, id: r.id }}
+                        to={linkTo as any}
+                        params={linkParams as any}
                         className="inline-flex items-center gap-1.5"
                       >
                         <TypeBadge type={r.type} />
                       </Link>
                     </TableCell>
                     <TableCell className="font-medium">
-                      <Link to="/stock-history/$type/$id" params={{ type: r.type, id: r.id }} className="hover:underline">
+                      <Link to={linkTo as any} params={linkParams as any} className="hover:underline">
                         {r.name}
                       </Link>
                       <div className="text-[11px] text-muted-foreground">{r.sub}</div>
@@ -188,11 +209,12 @@ function StockPage() {
                       {r.type === "raw" ? fmtKg(r.stock_kg) : fmtNum(r.stock_units)}
                     </TableCell>
                     <TableCell className="text-right num text-xs text-muted-foreground">
-                      {r.type === "part" ? fmtNum(r.threshold) : "—"}
+                      {(r.type === "part" || r.type === "other") ? fmtNum(r.threshold) : "—"}
                     </TableCell>
                     <TableCell>{renderStatus(r)}</TableCell>
                   </TableRow>
-                ))}
+                  );
+                })}
               </TableBody>
             </Table>
           )}
@@ -202,9 +224,10 @@ function StockPage() {
   );
 }
 
-function TypeBadge({ type }: { type: "raw" | "part" | "product" }) {
+function TypeBadge({ type }: { type: "raw" | "part" | "product" | "other" }) {
   if (type === "raw") return <Badge variant="outline" className="gap-1"><Package className="h-3 w-3" /> Raw</Badge>;
   if (type === "part") return <Badge variant="outline" className="gap-1"><Puzzle className="h-3 w-3" /> Part</Badge>;
+  if (type === "other") return <Badge variant="outline" className="gap-1"><Archive className="h-3 w-3" /> Other</Badge>;
   return <Badge variant="outline" className="gap-1"><Boxes className="h-3 w-3" /> Product</Badge>;
 }
 
@@ -214,7 +237,7 @@ function renderStatus(r: StockRow) {
     if (r.low) return <Badge variant="outline" className="border-warning text-warning">Low</Badge>;
     return <Badge variant="secondary">Active</Badge>;
   }
-  if (r.type === "part") {
+  if (r.type === "part" || r.type === "other") {
     if (r.low) return <Badge variant="outline" className="border-warning text-warning">Low</Badge>;
     return <Badge variant="secondary">OK</Badge>;
   }

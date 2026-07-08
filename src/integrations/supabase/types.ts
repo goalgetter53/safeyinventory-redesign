@@ -435,6 +435,42 @@ export type Database = {
           },
         ]
       }
+      other_items: {
+        Row: {
+          category: string
+          created_at: string
+          current_stock: number
+          id: string
+          low_stock_threshold: number
+          name: string
+          notes: string | null
+          unit: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          current_stock?: number
+          id?: string
+          low_stock_threshold?: number
+          name: string
+          notes?: string | null
+          unit?: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          current_stock?: number
+          id?: string
+          low_stock_threshold?: number
+          name?: string
+          notes?: string | null
+          unit?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       vendors: {
         Row: {
           address: string
