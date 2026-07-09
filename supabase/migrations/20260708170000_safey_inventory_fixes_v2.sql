@@ -53,7 +53,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_parts_part_name_lower
 -- =====================================================================
 
 DROP TRIGGER IF EXISTS trg_part_batch_num ON public.part_batches;
-DROP FUNCTION IF EXISTS public.part_batch_gen_batch_number();
+DROP FUNCTION IF EXISTS public.part_batch_gen_batch_number() CASCADE;
 
 CREATE OR REPLACE FUNCTION public.part_batch_gen_batch_number() RETURNS TRIGGER
 LANGUAGE plpgsql AS $$
@@ -99,7 +99,8 @@ CREATE TRIGGER trg_part_batch_num
 -- =====================================================================
 
 DROP TRIGGER IF EXISTS trg_raw_material_num ON public.raw_materials;
-DROP FUNCTION IF EXISTS public.raw_material_gen_batch_number();
+DROP TRIGGER IF EXISTS trg_raw_material_batch_num ON public.raw_materials;
+DROP FUNCTION IF EXISTS public.raw_material_gen_batch_number() CASCADE;
 
 CREATE OR REPLACE FUNCTION public.raw_material_gen_batch_number() RETURNS TRIGGER
 LANGUAGE plpgsql AS $$
@@ -128,6 +129,17 @@ DROP TRIGGER IF EXISTS trg_raw_material_num ON public.raw_materials;
 CREATE TRIGGER trg_raw_material_num
   BEFORE INSERT ON public.raw_materials
   FOR EACH ROW EXECUTE FUNCTION public.raw_material_gen_batch_number();
+
+-- Re-add CASCADE-dropped triggers that previous migration attached to the
+-- old function body. We can't know their original names, so we cover both.
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'trg_raw_material_num'
+                 AND tgrelid = 'public.raw_materials'::regclass) THEN
+    CREATE TRIGGER trg_raw_material_num BEFORE INSERT ON public.raw_materials
+      FOR EACH ROW EXECUTE FUNCTION public.raw_material_gen_batch_number();
+  END IF;
+END $$;
 
 -- =====================================================================
 -- 5. other_items table for stock-only items (boxes, tapes, etc).

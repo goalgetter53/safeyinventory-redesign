@@ -19,6 +19,7 @@ import { audit } from "@/lib/inventory/audit";
 import { cn } from "@/lib/utils";
 
 const schema = z.object({
+  part_id: z.string().uuid().optional(),
   quantity: z.coerce.number().positive(),
   raw_material_batch_id: z.string().uuid(),
   actual_usage_kg: z.coerce.number().min(0),
@@ -32,7 +33,10 @@ export function PartProduceDialog({ open, onOpenChange, part }: { open: boolean;
   const qc = useQueryClient();
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { quantity: 100, raw_material_batch_id: "", actual_usage_kg: 0, wastage_reason: "setup_loss", wastage_notes: "" },
+    defaultValues: { part_id: part?.id, quantity: 100, raw_material_batch_id: "", actual_usage_kg: 0, wastage_reason: "setup_loss", wastage_notes: "" },
+    values: part ? {
+      part_id: part.id, quantity: 100, raw_material_batch_id: "", actual_usage_kg: 0, wastage_reason: "setup_loss" as const, wastage_notes: "",
+    } : undefined,
   });
 
   const { data: rmBatches } = useQuery({
@@ -49,9 +53,11 @@ export function PartProduceDialog({ open, onOpenChange, part }: { open: boolean;
 
   const submit = useMutation({
     mutationFn: async (v: FormValues) => {
+      const partId = v.part_id ?? part?.id;
+      if (!partId) throw new Error("No part selected");
       const { data, error } = await supabase.from("part_batches").insert({
         batch_number: "",
-        part_id: part.id,
+        part_id: partId,
         quantity: v.quantity,
         raw_material_batch_id: v.raw_material_batch_id,
         expected_usage_kg: expected,

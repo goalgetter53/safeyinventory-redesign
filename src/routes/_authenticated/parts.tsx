@@ -45,7 +45,7 @@ function PartsPage() {
   const [produce, setProduce] = useState<any | null>(null);
 
   const { data: parts, isLoading } = useQuery({
-    queryKey: ["parts"],
+    queryKey: ["parts", "all"],
     staleTime: 5 * 60_000,
     queryFn: async () => (await supabase.from("parts").select("*").order("part_name")).data ?? [],
   });
@@ -140,7 +140,7 @@ function PartBatchesRow({ partId }: { partId: string }) {
 function PartForm({ open, onOpenChange, part }: { open: boolean; onOpenChange: (o: boolean) => void; part: any | null }) {
   const qc = useQueryClient();
   const { data: allParts } = useQuery({
-    queryKey: ["parts"],
+    queryKey: ["parts", "list"],
     staleTime: 5 * 60_000,
     queryFn: async () => (await supabase.from("parts").select("part_name,material_type").order("part_name")).data ?? [],
   });
@@ -172,7 +172,7 @@ function PartForm({ open, onOpenChange, part }: { open: boolean; onOpenChange: (
         }
       }
     },
-    onSuccess: () => { toast.success(part ? "Part updated" : "Part added"); qc.invalidateQueries({ queryKey: ["parts"] }); audit(part ? "update" : "create", "part"); onOpenChange(false); form.reset(); },
+    onSuccess: () => { toast.success(part ? "Part updated" : "Part added"); qc.invalidateQueries({ queryKey: ["parts"] }); qc.invalidateQueries({ queryKey: ["parts", "all"] }); qc.invalidateQueries({ queryKey: ["parts", "list"] }); audit(part ? "update" : "create", "part"); onOpenChange(false); form.reset(); },
     onError: (e: any) => toast.error(e.message ?? "Save failed"),
   });
 
