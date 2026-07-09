@@ -19,14 +19,6 @@ import { useDebouncedValue } from "@/hooks/use-debounced-value";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
-  beforeLoad: async () => {
-    if (typeof window !== "undefined" && (window as any).__TRACE_DEMO) {
-      return { session: { user: { id: "demo", email: "demo@trace.os" } } } as any;
-    }
-    const { data, error } = await supabase.auth.getSession();
-    if (error || !data.session) throw redirect({ to: "/auth" });
-    return { session: data.session };
-  },
   component: AuthenticatedLayout,
 });
 
