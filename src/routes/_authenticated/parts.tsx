@@ -142,7 +142,7 @@ function PartForm({ open, onOpenChange, part }: { open: boolean; onOpenChange: (
   const { data: allParts } = useQuery({
     queryKey: ["parts"],
     staleTime: 5 * 60_000,
-    queryFn: async () => (await supabase.from("parts").select("material_type").order("part_name")).data ?? [],
+    queryFn: async () => (await supabase.from("parts").select("part_name,material_type").order("part_name")).data ?? [],
   });
   const knownMaterials = Array.from(new Set((allParts ?? []).map((p: any) => p.material_type))).sort() as string[];
   const form = useForm<FormValues>({
@@ -162,8 +162,14 @@ function PartForm({ open, onOpenChange, part }: { open: boolean; onOpenChange: (
         const { error } = await supabase.from("parts").update(payload).eq("id", part.id);
         if (error) throw error;
       } else {
+        const nameLower = v.part_name.toLowerCase();
+        const dup = (allParts ?? []).find((p: any) => p.part_name.toLowerCase() === nameLower);
+        if (dup) throw new Error(`A part named "${dup.part_name}" already exists`);
         const { error } = await supabase.from("parts").insert(payload);
-        if (error) throw error;
+        if (error) {
+          if (error.code === "23505") throw new Error(`A part named "${v.part_name}" already exists`);
+          throw error;
+        }
       }
     },
     onSuccess: () => { toast.success(part ? "Part updated" : "Part added"); qc.invalidateQueries({ queryKey: ["parts"] }); audit(part ? "update" : "create", "part"); onOpenChange(false); form.reset(); },
